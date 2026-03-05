@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sand Dollar - Ocean Organizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=OpenDyslexic&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #047857; --primary-light: #059669; --success: #10b981;
+            --warning: #d97706; --danger: #991b1b; --bg-dark: #020d1a;
+            --bg-light: #0a1628; --surface: #0d1f2d; --surface-light: #132a3d;
+            --border: #1a3a4d; --text-primary: #b0c4d4; --text-secondary: #7a8fa0;
+            --text-tertiary: #546073; --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+            --glass-bg: rgba(13,31,45,0.55); --glass-border: rgba(255,255,255,0.06);
+        }
+        body { font-family: 'OpenDyslexic', Arial, sans-serif; background: linear-gradient(135deg, #020d1a 0%, #0a1628 50%, #061220 100%); color: var(--text-primary); overflow: hidden; }
+        /* Starfield */
+        #starfield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        .container { display: grid; grid-template-columns: 280px 1fr; height: 100vh; position: relative; z-index: 1; }
+        /* Sidebar */
+        .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 24px 16px; overflow-y: auto; display: flex; flex-direction: column; box-shadow: var(--shadow-sm); z-index: 10; transition: transform 0.3s ease; }
+        .logo { font-size: 18px; font-weight: 800; margin-bottom: 32px; display: flex; align-items: center; gap: 12px; color: var(--text-primary); }
+        .sand-dollar-icon { width: 40px; height: 40px; animation: sdRotate 20s linear infinite; }
+        @keyframes sdRotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .nav-section { margin-bottom: 28px; }
+        .nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.08em; margin-bottom: 12px; padding: 0 8px; }
+        .nav-item { padding: 12px; margin-bottom: 6px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-secondary); transition: all 0.2s ease; display: flex; align-items: center; gap: 10px; user-select: none; }
+        .nav-item:hover { background: var(--surface-light); color: var(--text-primary); }
+        .nav-item.active { background: linear-gradient(135deg, #047857 0%, #059669 100%); color: #f0f9ff; font-weight: 600; box-shadow: 0 4px 12px rgba(4,120,87,0.4); }
+        .sync-info { margin-top: auto; padding: 12px; background: var(--surface-light); border-radius: 10px; font-size: 12px; color: var(--text-secondary); text-align: center; border: 1px solid var(--border); }
+        /* Hamburger */
+        .hamburger { display: none; background: none; border: none; color: var(--text-primary); font-size: 28px; cursor: pointer; padding: 4px 8px; border-radius: 8px; transition: background 0.2s; }
+        .hamburger:hover { background: var(--surface-light); }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9; }
+        /* Main */
+        .main { display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .ocean-waves { position: absolute; bottom: 0; left: 0; width: 100%; height: 80px; overflow: hidden; z-index: 0; pointer-events: none; }
+        .ocean-wave { position: absolute; bottom: 0; left: -50%; width: 200%; height: 100%; }
+        .ocean-wave svg { width: 100%; height: 100%; }
+        .ocean-wave:nth-child(1) { animation: owSlide 10s linear infinite; opacity: 0.08; }
+        .ocean-wave:nth-child(2) { animation: owSlide 14s linear infinite reverse; opacity: 0.05; bottom: 5px; }
+        .ocean-wave:nth-child(3) { animation: owSlide 18s linear infinite; opacity: 0.04; bottom: 12px; }
+        @keyframes owSlide { 0% { transform: translateX(0); } 100% { transform: translateX(50%); } }
+        .header { background: var(--surface); padding: 20px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2; gap: 12px; }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .header-title { font-size: 28px; font-weight: 700; }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+        /* Search */
+        .search-box { position: relative; }
+        .search-input { padding: 8px 14px 8px 36px; border: 1px solid var(--border); border-radius: 10px; font-family: 'OpenDyslexic', Arial, sans-serif; font-size: 13px; color: var(--text-primary); background: var(--surface-light); width: 200px; transition: all 0.3s ease; }
+        .search-input:focus { outline: none; border-color: #047857; width: 280px; box-shadow: 0 0 0 3px rgba(4,120,87,0.15); }
+        .search-input::placeholder { color: var(--text-tertiary); }
+        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text-tertiary); pointer-events: none; }
+        .search-results { position: absolute; top: 100%; right: 0; margin-top: 8px; width: 360px; max-height: 400px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index: 100; display: none; }
+        .search-results.active { display: block; }
+        .search-result-item { padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; }
+        .search-result-item:hover { background: var(--surface-light); }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-type { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.06em; }
+        .search-result-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-top: 2px; }
+        .btn { padding: 10px 16px; border-radius: 10px; border: none; cursor: pointer; font-family: 'OpenDyslexic', Arial, sans-serif; font-size: 14px; font-weight: 600; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px; }
+        .btn-primary { background: linear-gradient(135deg, #047857 0%, #059669 100%); color: #f0f9ff; box-shadow: 0 4px 12px rgba(4,120,87,0.3); font-weight: 700; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(4,120,87,0.4); }
+        .btn-secondary { background: var(--surface-light); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--border); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .content { flex: 1; overflow-y: auto; padding: 32px; position: relative; z-index: 1; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .card { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 14px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid var(--glass-border); transition: all 0.3s ease; }
+        .card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06); border-color: rgba(4,120,87,0.3); transform: translateY(-3px); }
+        .card-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
+        .card-text { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
+        .card-footer { display: flex; gap: 8px; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-tertiary); flex-wrap: wrap; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em; margin-bottom: 8px; display: block; }
+        .form-input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-family: 'OpenDyslexic', Arial, sans-serif; font-size: 14px; color: var(--text-primary); background: var(--surface-light); transition: all 0.2s ease; }
+        .form-input:focus { outline: none; border-color: #047857; background: rgba(4,120,87,0.05); box-shadow: 0 0 0 3px rgba(4,120,87,0.15); }
+        .form-input::placeholder { color: var(--text-tertiary); }
+        textarea.form-input { min-height: 100px; resize: vertical; font-family: 'OpenDyslexic', Arial, sans-serif; }
+        .form-section { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 14px; padding: 24px; border: 2px dashed rgba(255,255,255,0.08); margin-top: 20px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+        .empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.6; }
+        .checkbox-wrapper { display: flex; gap: 12px; align-items: flex-start; }
+        .checkbox { width: 24px; height: 24px; min-width: 24px; border-radius: 6px; border: 2px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; background: var(--surface); transition: all 0.2s ease; margin-top: 2px; }
+        .checkbox:hover { border-color: #047857; }
+        .checkbox.checked { background: linear-gradient(135deg, #047857 0%, #059669 100%); border-color: #047857; color: #f0f9ff; font-weight: bold; }
+        .btn-delete { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.2s ease; font-size: 16px; }
+        .btn-delete:hover { background: rgba(153,27,27,0.2); color: #fca5a5; }
+        .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: rgba(4,120,87,0.2); color: #7cd6c4; }
+        .tag-high { background: rgba(239,68,68,0.2); color: #fca5a5; }
+        .tag-medium { background: rgba(217,119,6,0.2); color: #fbbf24; }
+        .tag-low { background: rgba(4,120,87,0.2); color: #7cd6c4; }
+        .completion-ring { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+        .completion-ring svg { transform: rotate(-90deg); }
+        .completion-ring .ring-text { position: absolute; font-size: 18px; font-weight: 800; }
+        /* Countdown badge */
+        .countdown { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+        .countdown-urgent { background: rgba(239,68,68,0.2); color: #fca5a5; }
+        .countdown-soon { background: rgba(217,119,6,0.2); color: #fbbf24; }
+        .countdown-ok { background: rgba(4,120,87,0.2); color: #7cd6c4; }
+        /* Study goal progress bar */
+        .goal-bar-bg { width: 100%; height: 12px; background: var(--border); border-radius: 6px; overflow: hidden; }
+        .goal-bar-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease; background: linear-gradient(90deg, #047857, #10b981); }
+        /* Flashcard study mode */
+        .study-mode-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(2,13,26,0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 5000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .flashcard-study { width: 440px; max-width: 90vw; height: 280px; perspective: 1000px; cursor: pointer; margin-bottom: 28px; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s ease; transform-style: preserve-3d; }
+        .flashcard-inner.flipped { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 18px; display: flex; align-items: center; justify-content: center; padding: 32px; text-align: center; font-size: 18px; font-weight: 600; line-height: 1.5; }
+        .flashcard-front { background: linear-gradient(135deg, rgba(4,120,87,0.25), rgba(5,150,105,0.15)); border: 1px solid rgba(4,120,87,0.3); color: var(--text-primary); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+        .flashcard-back { background: linear-gradient(135deg, rgba(37,99,235,0.25), rgba(13,148,136,0.15)); border: 1px solid rgba(37,99,235,0.3); color: var(--text-primary); transform: rotateY(180deg); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+        .study-btn { padding: 14px 28px; border-radius: 14px; border: none; cursor: pointer; font-family: 'OpenDyslexic', Arial, sans-serif; font-size: 15px; font-weight: 700; transition: all 0.2s ease; }
+        .study-btn:hover { transform: translateY(-2px); }
+        .study-btn.correct { background: linear-gradient(135deg, #047857, #059669); color: #f0f9ff; box-shadow: 0 4px 16px rgba(4,120,87,0.4); }
+        .study-btn.wrong { background: linear-gradient(135deg, #991b1b, #b91c1c); color: #fef2f2; box-shadow: 0 4px 16px rgba(153,27,27,0.4); }
+        .study-btn.close { background: var(--surface-light); color: var(--text-primary); border: 1px solid var(--border); }
+        /* Fish rain */
+        .fish-rain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 8000; pointer-events: none; overflow: hidden; }
+        .fish { position: absolute; font-size: 32px; animation: fishFall linear forwards; }
+        @keyframes fishFall { 0% { transform: translateY(-60px) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(360deg); opacity: 0.7; } }
+        /* Lock screen */
+        .lock-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; background: linear-gradient(135deg, #020d1a 0%, #0a1628 40%, #061a2e 70%, #020d1a 100%); display: flex; align-items: center; justify-content: center; flex-direction: column; overflow: hidden; }
+        .lock-screen.unlocked { animation: lockFadeOut 0.6s ease forwards; pointer-events: none; }
+        @keyframes lockFadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
+        .wave-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 200px; overflow: hidden; }
+        .wave { position: absolute; bottom: 0; left: -50%; width: 200%; height: 100%; }
+        .wave svg { width: 100%; height: 100%; }
+        .wave:nth-child(1) { animation: waveSlide 8s linear infinite; opacity: 0.12; }
+        .wave:nth-child(2) { animation: waveSlide 11s linear infinite reverse; opacity: 0.08; bottom: 10px; }
+        .wave:nth-child(3) { animation: waveSlide 14s linear infinite; opacity: 0.06; bottom: 20px; }
+        @keyframes waveSlide { 0% { transform: translateX(0); } 100% { transform: translateX(50%); } }
+        .bubble { position: absolute; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(4,120,87,0.25), rgba(4,120,87,0.05)); border: 1px solid rgba(4,120,87,0.15); animation: bubbleFloat linear infinite; }
+        @keyframes bubbleFloat { 0% { transform: translateY(100vh) scale(0.5); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100px) scale(1); opacity: 0; } }
+        .lock-content { position: relative; z-index: 2; text-align: center; padding: 40px; }
+        .lock-logo { margin-bottom: 32px; animation: lockLogoIn 0.8s ease-out; }
+        @keyframes lockLogoIn { 0% { transform: translateY(-20px) scale(0.9); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+        .lock-logo svg { width: 80px; height: 80px; filter: drop-shadow(0 4px 20px rgba(196,167,71,0.3)); }
+        .lock-title { font-size: 36px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; animation: lockTextIn 0.8s ease-out 0.1s both; }
+        .lock-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 36px; animation: lockTextIn 0.8s ease-out 0.2s both; }
+        @keyframes lockTextIn { 0% { transform: translateY(12px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        .lock-form { animation: lockTextIn 0.8s ease-out 0.3s both; }
+        .lock-input-wrapper { position: relative; width: 280px; margin: 0 auto 16px; }
+        .lock-input { width: 100%; padding: 16px 20px; border: 2px solid var(--border); border-radius: 14px; font-family: 'OpenDyslexic', Arial, sans-serif; font-size: 16px; color: var(--text-primary); background: rgba(13,31,45,0.8); backdrop-filter: blur(10px); text-align: center; letter-spacing: 4px; transition: all 0.3s ease; }
+        .lock-input:focus { outline: none; border-color: #047857; box-shadow: 0 0 0 4px rgba(4,120,87,0.2), 0 8px 32px rgba(0,0,0,0.3); }
+        .lock-input::placeholder { color: var(--text-tertiary); letter-spacing: 1px; }
+        .lock-btn { padding: 14px 48px; border-radius: 14px; border: none; cursor: pointer; font-family: 'OpenDyslexic', Arial, sans-serif; font-size: 16px; font-weight: 700; background: linear-gradient(135deg, #047857 0%, #059669 100%); color: #f0f9ff; box-shadow: 0 4px 20px rgba(4,120,87,0.4); transition: all 0.3s ease; }
+        .lock-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(4,120,87,0.5); }
+        .lock-error { color: #fca5a5; font-size: 13px; margin-top: 12px; height: 20px; }
+        .lock-error.shake { animation: lockShake 0.5s ease; }
+        @keyframes lockShake { 0%,100%{transform:translateX(0);}20%{transform:translateX(-10px);}40%{transform:translateX(10px);}60%{transform:translateX(-6px);}80%{transform:translateX(6px);} }
+        .lock-settings { margin-top: 24px; font-size: 12px; color: var(--text-tertiary); }
+        .lock-settings a { color: var(--text-secondary); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+        .lock-settings a:hover { color: var(--text-primary); }
+        .app-locked .container { display: none; }
+        .app-locked #starfield { display: none; }
+        /* Sort controls */
+        .sort-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; font-size: 12px; color: var(--text-secondary); }
+        .sort-btn { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; font-family: 'OpenDyslexic', Arial, sans-serif; font-size: 11px; font-weight: 600; transition: all 0.2s; }
+        .sort-btn.active { background: var(--primary); color: #f0f9ff; border-color: var(--primary); }
+        .sort-btn:hover { border-color: var(--primary); }
+        /* Pinned note */
+        .pin-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px; transition: transform 0.2s; }
+        .pin-btn:hover { transform: scale(1.2); }
+        @media (max-width: 1024px) {
+            .container { grid-template-columns: 1fr; }
+            .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; transform: translateX(-100%); z-index: 10; }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay.active { display: block; }
+            .hamburger { display: block; }
+            .search-input { width: 140px; }
+            .search-input:focus { width: 200px; }
+            .search-results { width: 300px; }
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    </style>
+</head>
+<body class="app-locked">
+    <canvas id="starfield"></canvas>
+    <!-- LOCK SCREEN -->
+    <div class="lock-screen" id="lockScreen">
+        <div class="bubble" style="width:20px;height:20px;left:10%;animation-duration:12s;animation-delay:0s;"></div>
+        <div class="bubble" style="width:14px;height:14px;left:25%;animation-duration:16s;animation-delay:2s;"></div>
+        <div class="bubble" style="width:24px;height:24px;left:45%;animation-duration:10s;animation-delay:4s;"></div>
+        <div class="bubble" style="width:16px;height:16px;left:65%;animation-duration:14s;animation-delay:1s;"></div>
+        <div class="bubble" style="width:12px;height:12px;left:80%;animation-duration:18s;animation-delay:3s;"></div>
+        <div class="bubble" style="width:18px;height:18px;left:35%;animation-duration:11s;animation-delay:5s;"></div>
+        <div class="bubble" style="width:10px;height:10px;left:55%;animation-duration:15s;animation-delay:7s;"></div>
+        <div class="bubble" style="width:22px;height:22px;left:90%;animation-duration:13s;animation-delay:6s;"></div>
+        <div class="wave-container">
+            <div class="wave"><svg viewBox="0 0 1440 200" preserveAspectRatio="none"><path d="M0,100 C360,180 720,20 1080,100 C1260,140 1380,60 1440,100 L1440,200 L0,200 Z" fill="#047857"/></svg></div>
+            <div class="wave"><svg viewBox="0 0 1440 200" preserveAspectRatio="none"><path d="M0,120 C240,60 480,160 720,100 C960,40 1200,140 1440,80 L1440,200 L0,200 Z" fill="#059669"/></svg></div>
+            <div class="wave"><svg viewBox="0 0 1440 200" preserveAspectRatio="none"><path d="M0,80 C300,140 600,60 900,120 C1100,160 1300,80 1440,110 L1440,200 L0,200 Z" fill="#0d9488"/></svg></div>
+        </div>
+        <div class="lock-content">
+            <div class="lock-logo"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" fill="#c4a747" stroke="#a68f3d" stroke-width="1.5"/><circle cx="50" cy="30" r="6" fill="#8b7a2f" opacity="0.8"/><circle cx="65" cy="42" r="6" fill="#8b7a2f" opacity="0.8"/><circle cx="60" cy="60" r="6" fill="#8b7a2f" opacity="0.8"/><circle cx="40" cy="60" r="6" fill="#8b7a2f" opacity="0.8"/><circle cx="35" cy="42" r="6" fill="#8b7a2f" opacity="0.8"/><circle cx="50" cy="50" r="3" fill="#6b5a1f"/><g stroke="#a68f3d" stroke-width="0.8" opacity="0.5"><line x1="50" y1="50" x2="50" y2="8"/><line x1="50" y1="50" x2="77" y2="35"/><line x1="50" y1="50" x2="80" y2="60"/><line x1="50" y1="50" x2="65" y2="85"/><line x1="50" y1="50" x2="35" y2="92"/></g></svg></div>
+            <div class="lock-title">Sand Dollar</div>
+            <div class="lock-subtitle">Ocean Organizer</div>
+            <div class="lock-form">
+                <div class="lock-input-wrapper"><input type="password" class="lock-input" id="lockInput" placeholder="Password" autocomplete="off"></div>
+                <button class="lock-btn" id="lockBtn">Dive In 🌊</button>
+                <div class="lock-error" id="lockError"></div>
+            </div>
+            <div class="lock-settings" id="lockSettings"></div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <div class="logo"><svg class="sand-dollar-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" fill="#c4a747" stroke="#a68f3d" stroke-width="1.5"/><circle cx="50" cy="30" r="6" fill="#8b7a2f" opacity="0.8"/><circle cx="65" cy="42" r="6" fill="#8b7a2f" opacity="0.8"/><circle cx="60" cy="60" r="6" fill="#8b7a2f" opacity="0.8"/><circle cx="40" cy="60" r="6" fill="#8b7a2f" opacity="0.8"/><circle cx="35" cy="42" r="6" fill="#8b7a2f" opacity="0.8"/><circle cx="50" cy="50" r="3" fill="#6b5a1f"/><g stroke="#a68f3d" stroke-width="0.8" opacity="0.5"><line x1="50" y1="50" x2="50" y2="8"/><line x1="50" y1="50" x2="77" y2="35"/><line x1="50" y1="50" x2="80" y2="60"/><line x1="50" y1="50" x2="65" y2="85"/><line x1="50" y1="50" x2="35" y2="92"/></g></svg><span>Sand Dollar</span></div>
+            <div class="nav-section">
+                <div class="nav-label">View</div>
+                <div class="nav-item active" data-page="dashboard">🏠 Dashboard</div>
+                <div class="nav-item" data-page="calendar">📅 Calendar</div>
+                <div class="nav-item" data-page="tasks">🐙 Tasks</div>
+                <div class="nav-item" data-page="assignments">🪸 Assignments</div>
+                <div class="nav-item" data-page="notes">📝 Notes</div>
+                <div class="nav-item" data-page="study">⏱️ Study</div>
+                <div class="nav-item" data-page="flashcards">🎴 Flashcards</div>
+                <div class="nav-item" data-page="vocab">📚 Vocab</div>
+                <div class="nav-item" data-page="grades">📊 Grades</div>
+                <div class="nav-item" data-page="reading">📖 Reading</div>
+                <div class="nav-item" data-page="archive">🗄️ Archive</div>
+            </div>
+            <div class="sync-info">✅ Data saves automatically</div>
+        </div>
+        <div class="main">
+            <div class="ocean-waves">
+                <div class="ocean-wave"><svg viewBox="0 0 1440 120" preserveAspectRatio="none"><path d="M0,60 C360,110 720,10 1080,60 C1260,85 1380,35 1440,60 L1440,120 L0,120 Z" fill="#047857"/></svg></div>
+                <div class="ocean-wave"><svg viewBox="0 0 1440 120" preserveAspectRatio="none"><path d="M0,70 C240,30 480,100 720,60 C960,20 1200,90 1440,50 L1440,120 L0,120 Z" fill="#059669"/></svg></div>
+                <div class="ocean-wave"><svg viewBox="0 0 1440 120" preserveAspectRatio="none"><path d="M0,50 C300,90 600,30 900,70 C1100,95 1300,40 1440,65 L1440,120 L0,120 Z" fill="#0d9488"/></svg></div>
+            </div>
+            <div class="header">
+                <div class="header-left">
+                    <button class="hamburger" id="hamburgerBtn">☰</button>
+                    <div class="header-title" id="pageTitle">Dashboard</div>
+                </div>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search...">
+                        <div class="search-results" id="searchResults"></div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" id="exportBtn">💾</button>
+                    <button class="btn btn-secondary btn-sm" id="logoutBtn">🔒</button>
+                </div>
+            </div>
+            <div class="content" id="content"></div>
+        </div>
+    </div>
+    <div class="study-mode-overlay" id="studyOverlay" style="display:none;"></div>
+    <div class="fish-rain" id="fishRain"></div>
+
+    <script>
+    // ===== STARFIELD =====
+    function initStarfield() {
+        const c = document.getElementById('starfield'), ctx = c.getContext('2d');
+        let w, h, stars = [];
+        function resize() { w = c.width = window.innerWidth; h = c.height = window.innerHeight; }
+        resize(); window.addEventListener('resize', resize);
+        for (let i = 0; i < 80; i++) stars.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.5+0.3, dx: (Math.random()-0.5)*0.15, dy: (Math.random()-0.5)*0.1, o: Math.random()*0.5+0.2 });
+        function draw() {
+            ctx.clearRect(0,0,w,h);
+            stars.forEach(s => {
+                ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(120,180,210,${s.o})`; ctx.fill();
+                s.x += s.dx; s.y += s.dy;
+                if (s.x < 0) s.x = w; if (s.x > w) s.x = 0;
+                if (s.y < 0) s.y = h; if (s.y > h) s.y = 0;
+            });
+            requestAnimationFrame(draw);
+        }
+        draw();
+    }
+
+    // ===== FISH RAIN =====
+    function fishRain() {
+        const container = document.getElementById('fishRain');
+        const fish = ['🐟','🐠','🐡','🦈','🐬','🐳','🐋','🦑','🐙','🦐','🦀','🪼','🐚','🦭'];
+        for (let i = 0; i < 40; i++) {
+            const el = document.createElement('div');
+            el.className = 'fish';
+            el.textContent = fish[Math.floor(Math.random()*fish.length)];
+            el.style.left = Math.random()*100+'%';
+            el.style.fontSize = (20+Math.random()*30)+'px';
+            el.style.animationDuration = (2+Math.random()*3)+'s';
+            el.style.animationDelay = (Math.random()*2)+'s';
+            container.appendChild(el);
+        }
+        setTimeout(() => { container.innerHTML = ''; }, 6000);
+    }
+
+    // ===== OCEAN FACTS =====
+    const oceanFacts = [
+        "🐙 Octopuses have three hearts and blue blood.",
+        "🦑 The giant squid's eye is the size of a dinner plate.",
+        "🐢 Sea turtles can hold their breath for up to 7 hours while sleeping.",
+        "🪼 Jellyfish have been around for over 500 million years — older than dinosaurs.",
+        "🐋 A blue whale's heart is so large a small child could crawl through its arteries.",
+        "🦈 Sharks can detect a drop of blood in 25 gallons of water.",
+        "🐠 Clownfish are all born male — some switch to female to lead the group.",
+        "🐚 A sea cucumber can eject its organs to scare predators, then regrow them.",
+        "🦐 The mantis shrimp punches so fast it boils the water around its fist.",
+        "🐡 Pufferfish contain enough toxin to kill 30 adult humans.",
+        "🪸 Coral reefs support 25% of all marine species but cover less than 1% of the ocean floor.",
+        "🐬 Dolphins sleep with one eye open — half their brain stays awake.",
+        "🦭 Sea otters hold hands while sleeping so they don't drift apart.",
+        "🐳 Humpback whale songs can travel 10,000 miles through the ocean.",
+        "🦀 The Japanese spider crab has a leg span of up to 12 feet.",
+        "🐙 The mimic octopus can impersonate over 15 different species.",
+        "🌊 The Mariana Trench is deeper than Mount Everest is tall.",
+        "🐠 Parrotfish poop out sand — up to 840 pounds per year.",
+        "🦈 Greenland sharks can live over 400 years.",
+        "🐋 Sperm whales sleep vertically, floating straight up and down.",
+        "🦑 Cuttlefish have W-shaped pupils and can see polarized light.",
+        "🐚 Nautiluses have been around for 500 million years.",
+        "🐢 Leatherback sea turtles can dive to depths of 4,000 feet.",
+        "🪼 The immortal jellyfish can revert to its juvenile form, living forever.",
+        "🦐 Pistol shrimp snap their claws creating a shockwave louder than a gunshot.",
+        "🐡 Seahorses are the only animal where the male gives birth.",
+        "🦭 Elephant seals can hold their breath for up to 2 hours.",
+        "🐬 Orcas are the largest member of the dolphin family, not whales.",
+        "🐳 Bowhead whales can break through 8 inches of solid ice with their skulls.",
+        "🦀 Horseshoe crabs have blue blood used to test vaccine safety."
+    ];
+    function getDailyFact() { const d=new Date(); return oceanFacts[Math.floor((d-new Date(d.getFullYear(),0,0))/86400000)%oceanFacts.length]; }
+
+    // ===== HELPERS =====
+    function completionRing(done,total,size,color) {
+        const pct=total===0?0:Math.round((done/total)*100), r=(size-8)/2, circ=2*Math.PI*r, off=circ-(pct/100)*circ;
+        return `<div class="completion-ring"><svg width="${size}" height="${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--border)" stroke-width="6"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-dasharray="${circ}" stroke-dashoffset="${off}" stroke-linecap="round" style="transition:stroke-dashoffset 0.8s ease;"/></svg><span class="ring-text" style="color:${color};">${pct}%</span></div>`;
+    }
+    function countdownBadge(dueDate) {
+        const now=new Date(), due=new Date(dueDate+'T23:59:59'), diff=Math.ceil((due-now)/(1000*60*60*24));
+        if (diff<0) return `<span class="countdown countdown-urgent">⚠️ Overdue</span>`;
+        if (diff===0) return `<span class="countdown countdown-urgent">🔥 Due today</span>`;
+        if (diff===1) return `<span class="countdown countdown-soon">⏰ Tomorrow</span>`;
+        if (diff<=3) return `<span class="countdown countdown-soon">⏰ ${diff} days</span>`;
+        return `<span class="countdown countdown-ok">📅 ${diff} days</span>`;
+    }
+    function priorityTag(p) { return `<span class="tag tag-${p}">${p}</span>`; }
+    function hexToRgb(hex) { const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return r?`${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)}`:'0,0,0'; }
+    const CC = { 'Environmental':'#0d9488','Space':'#0369a1','Math':'#2563eb','Health':'#06b6d4','Film':'#0891b2','Anatomy':'#14b8a6' };
+
+    // ===== APP =====
+    const app = {
+        currentPage:'dashboard', tasks:[], assignments:[], notes:[], studySessions:[], flashcards:[], vocab:[], calendarEvents:[], grades:[], archived:[], books:[], readingLogs:[],
+        activeClassTab:'all', activeVocabTab:'all', activeFlashcardTab:'all', assignmentSort:'due',
+        weeklyStudyGoal: 120,
+
+        init() { this.loadData(); this.setupSidebar(); this.setupExport(); this.setupSearch(); this.render(); },
+
+        loadData() {
+            const s=localStorage.getItem('sandDollarData');
+            if(s){const d=JSON.parse(s);this.tasks=d.tasks||[];this.assignments=d.assignments||[];this.notes=d.notes||[];this.studySessions=d.studySessions||[];this.flashcards=d.flashcards||[];this.vocab=d.vocab||[];this.calendarEvents=d.calendarEvents||[];this.grades=d.grades||[];this.archived=d.archived||[];this.weeklyStudyGoal=d.weeklyStudyGoal||120;this.books=d.books||[];this.readingLogs=d.readingLogs||[];}
+        },
+        saveData() {
+            localStorage.setItem('sandDollarData',JSON.stringify({tasks:this.tasks,assignments:this.assignments,notes:this.notes,studySessions:this.studySessions,flashcards:this.flashcards,vocab:this.vocab,calendarEvents:this.calendarEvents,grades:this.grades,archived:this.archived,weeklyStudyGoal:this.weeklyStudyGoal,books:this.books,readingLogs:this.readingLogs}));
+        },
+        setupSidebar() {
+            document.querySelectorAll('[data-page]').forEach(item=>{item.addEventListener('click',()=>{document.querySelectorAll('[data-page]').forEach(i=>i.classList.remove('active'));item.classList.add('active');this.currentPage=item.dataset.page;this.render();document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('active');});});
+            document.getElementById('hamburgerBtn').addEventListener('click',()=>{document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');});
+            document.getElementById('sidebarOverlay').addEventListener('click',()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('active');});
+        },
+        setupExport() {
+            document.getElementById('exportBtn').addEventListener('click',()=>{const json=JSON.stringify({tasks:this.tasks,notes:this.notes,studySessions:this.studySessions,flashcards:this.flashcards,vocab:this.vocab,grades:this.grades,archived:this.archived,books:this.books,readingLogs:this.readingLogs,exportDate:new Date().toISOString()},null,2);const b=new Blob([json],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`sand-dollar-${new Date().toISOString().split('T')[0]}.json`;a.click();URL.revokeObjectURL(u);});
+            document.getElementById('logoutBtn').addEventListener('click',()=>{document.body.classList.add('app-locked');const ls=document.getElementById('lockScreen');ls.style.display='';ls.classList.remove('unlocked');document.getElementById('lockInput').value='';document.getElementById('lockError').textContent='';document.getElementById('lockInput').focus();});
+        },
+        setupSearch() {
+            const input=document.getElementById('searchInput'), results=document.getElementById('searchResults');
+            input.addEventListener('input',()=>{
+                const q=input.value.toLowerCase().trim();
+                if(q.length<2){results.classList.remove('active');return;}
+                let hits=[];
+                this.tasks.forEach(t=>{if(t.title.toLowerCase().includes(q))hits.push({type:'Task',title:t.title,page:'tasks'});});
+                this.assignments.forEach(a=>{if(a.title.toLowerCase().includes(q)||a.class.toLowerCase().includes(q))hits.push({type:'Assignment',title:`${a.title} (${a.class})`,page:'assignments'});});
+                this.notes.forEach(n=>{if(n.title.toLowerCase().includes(q)||n.content.toLowerCase().includes(q))hits.push({type:'Note',title:n.title,page:'notes'});});
+                this.vocab.forEach(v=>{if(v.word.toLowerCase().includes(q)||v.definition.toLowerCase().includes(q))hits.push({type:'Vocab',title:v.word,page:'vocab'});});
+                this.flashcards.forEach(f=>{if(f.name.toLowerCase().includes(q))hits.push({type:'Deck',title:f.name,page:'flashcards'});});
+                this.grades.forEach(g=>{if(g.name.toLowerCase().includes(q)||g.gradeClass.toLowerCase().includes(q))hits.push({type:'Grade',title:`${g.name} (${g.score}%)`,page:'grades'});});
+                this.books.forEach(b=>{if(b.title.toLowerCase().includes(q)||b.author.toLowerCase().includes(q)||(b.genre||'').toLowerCase().includes(q))hits.push({type:'Book',title:`${b.title} by ${b.author}`,page:'reading'});});
+                if(hits.length===0){results.innerHTML=`<div style="padding:16px;color:var(--text-tertiary);text-align:center;font-size:13px;">No results found</div>`;results.classList.add('active');return;}
+                results.innerHTML=hits.slice(0,8).map(h=>`<div class="search-result-item" data-goto="${h.page}"><div class="search-result-type">${h.type}</div><div class="search-result-title">${h.title}</div></div>`).join('');
+                results.classList.add('active');
+                results.querySelectorAll('[data-goto]').forEach(el=>{el.addEventListener('click',()=>{this.currentPage=el.dataset.goto;document.querySelectorAll('[data-page]').forEach(i=>i.classList.remove('active'));document.querySelector(`[data-page="${el.dataset.goto}"]`).classList.add('active');this.render();results.classList.remove('active');input.value='';});});
+            });
+            document.addEventListener('click',(e)=>{if(!e.target.closest('.search-box'))results.classList.remove('active');});
+        },
+
+        render() {
+            const c=document.getElementById('content'),t=document.getElementById('pageTitle');
+            let html='',title='';
+            if(this.currentPage==='dashboard'){html=this.renderDashboard();title='Dashboard';}
+            else if(this.currentPage==='calendar'){html=this.renderCalendar();title='Calendar';}
+            else if(this.currentPage==='tasks'){html=this.renderTasks();title='Tasks';}
+            else if(this.currentPage==='assignments'){html=this.renderAssignments();title='Assignments';}
+            else if(this.currentPage==='notes'){html=this.renderNotes();title='Notes & Reminders';}
+            else if(this.currentPage==='study'){html=this.renderStudy();title='Study Time';}
+            else if(this.currentPage==='flashcards'){html=this.renderFlashcards();title='Flashcards';}
+            else if(this.currentPage==='vocab'){html=this.renderVocab();title='Vocabulary';}
+            else if(this.currentPage==='grades'){html=this.renderGrades();title='Grades';}
+            else if(this.currentPage==='reading'){html=this.renderReading();title='Reading';}
+            else if(this.currentPage==='archive'){html=this.renderArchive();title='Archive';}
+            t.textContent=title;c.innerHTML=html;this.attachListeners();
+        },
+
+        attachListeners() {
+            document.querySelectorAll('[data-fctab]').forEach(b=>{b.addEventListener('click',()=>{this.activeFlashcardTab=b.dataset.fctab;this.render();});});
+            document.querySelectorAll('[data-vocabtab]').forEach(b=>{b.addEventListener('click',()=>{this.activeVocabTab=b.dataset.vocabtab;this.render();});});
+            document.querySelectorAll('[data-classtab]').forEach(b=>{b.addEventListener('click',()=>{this.activeClassTab=b.dataset.classtab;this.render();});});
+            document.querySelectorAll('[data-delete]').forEach(b=>{b.addEventListener('click',(e)=>{e.stopPropagation();this.deleteItem(b.dataset.type,parseInt(b.dataset.id));});});
+            document.querySelectorAll('[data-toggle]').forEach(b=>{b.addEventListener('click',(e)=>{e.stopPropagation();this.toggleItem(b.dataset.type,parseInt(b.dataset.id));});});
+            document.querySelectorAll('[data-study-deck]').forEach(b=>{b.addEventListener('click',(e)=>{e.stopPropagation();this.startStudyMode(parseInt(b.dataset.studyDeck));});});
+            document.querySelectorAll('[data-addcard-deck]').forEach(b=>{b.addEventListener('click',(e)=>{e.stopPropagation();this.showAddCardForm(parseInt(b.dataset.addcardDeck));});});
+            document.querySelectorAll('[data-sort]').forEach(b=>{b.addEventListener('click',()=>{this.assignmentSort=b.dataset.sort;this.render();});});
+            document.querySelectorAll('[data-archive]').forEach(b=>{b.addEventListener('click',(e)=>{e.stopPropagation();this.archiveItem(parseInt(b.dataset.archive));});});
+            document.querySelectorAll('[data-unarchive]').forEach(b=>{b.addEventListener('click',(e)=>{e.stopPropagation();this.unarchiveItem(parseInt(b.dataset.unarchive));});});
+            document.querySelectorAll('[data-pin]').forEach(b=>{b.addEventListener('click',(e)=>{e.stopPropagation();this.togglePin(parseInt(b.dataset.pin));});});
+            document.querySelectorAll('[data-topfive]').forEach(b=>{b.addEventListener('click',(e)=>{e.stopPropagation();this.toggleTopFive(parseInt(b.dataset.topfive));});});
+            document.querySelectorAll('[data-logread]').forEach(b=>{b.addEventListener('click',(e)=>{e.stopPropagation();this.logReading(parseInt(b.dataset.logread));});});
+            // Reading log submit
+            const rlForm=document.getElementById('readingLogForm');
+            if(rlForm){rlForm.addEventListener('submit',(e)=>{e.preventDefault();const f=new FormData(rlForm);const bookId=parseInt(f.get('bookId'));const words=parseInt(f.get('words'));const note=f.get('note')||'';if(words>0)this.submitReadingLog(bookId,words,note);});}
+            // Page calculator
+            const pageCalcBtn=document.getElementById('pageCalcBtn');
+            if(pageCalcBtn){pageCalcBtn.addEventListener('click',()=>{const pages=parseInt(document.getElementById('pageCalcPages').value);const wpp=parseInt(document.getElementById('pageCalcWpp').value);if(pages>0&&wpp>0){const wordsInput=document.getElementById('readingWordsInput');if(wordsInput)wordsInput.value=pages*wpp;}});}
+            // Cancel log
+            const cancelLogBtn=document.getElementById('cancelLogBtn');
+            if(cancelLogBtn){cancelLogBtn.addEventListener('click',()=>{this.logBookTarget=null;this.render();});}
+            // Quick log (manual, no book)
+            const qlForm=document.getElementById('quickLogForm');
+            if(qlForm){qlForm.addEventListener('submit',(e)=>{e.preventDefault();const f=new FormData(qlForm);const w=parseInt(f.get('words'));if(w>0)this.submitQuickLog(w,f.get('note'));});}
+            // Page number updates
+            document.querySelectorAll('[data-updatepage]').forEach(b=>{b.addEventListener('click',(e)=>{e.stopPropagation();const bookId=parseInt(b.dataset.updatepage);const input=document.getElementById('pageInput_'+bookId);if(input&&parseInt(input.value)>0)this.updateBookPage(bookId,parseInt(input.value));});});
+            // Word count lookup on add book form
+            const lookupBtn=document.getElementById('lookupWordCountBtn');
+            if(lookupBtn){lookupBtn.addEventListener('click',()=>{const titleInput=document.querySelector('#bookForm input[name="title"]');const wcInput=document.getElementById('bookTotalWordsInput');if(titleInput&&wcInput){const wc=this.lookupWordCount(titleInput.value);if(wc){wcInput.value=wc;wcInput.style.borderColor='#10b981';}else{wcInput.placeholder='Not found — enter manually';wcInput.style.borderColor='#d97706';}}});}
+            document.querySelectorAll('[data-finishbook]').forEach(b=>{b.addEventListener('click',(e)=>{e.stopPropagation();const bk=this.books.find(x=>x.id===parseInt(b.dataset.finishbook));if(bk){bk.status='finished';bk.finishedDate=new Date();this.saveData();this.render();}});});
+            const goalInput = document.getElementById('studyGoalInput');
+            if(goalInput){goalInput.addEventListener('change',()=>{this.weeklyStudyGoal=parseInt(goalInput.value)||120;this.saveData();this.render();});}
+        },
+
+        archiveItem(id) {
+            const a=this.assignments.find(x=>x.id===id);
+            if(a){this.archived.push({...a,archivedDate:new Date()});this.assignments=this.assignments.filter(x=>x.id!==id);this.saveData();this.render();
+            // Check if all assignments are done
+            if(this.assignments.length>0&&this.assignments.every(x=>x.completed)){fishRain();}}
+        },
+        unarchiveItem(id) { const a=this.archived.find(x=>x.id===id);if(a){this.assignments.push(a);this.archived=this.archived.filter(x=>x.id!==id);this.saveData();this.render();} },
+        togglePin(id) { const n=this.notes.find(x=>x.id===id);if(n){n.pinned=!n.pinned;this.saveData();this.render();} },
+        toggleTopFive(id) { const b=this.books.find(x=>x.id===id);if(b){b.topFive=!b.topFive;this.saveData();this.render();} },
+        logReading(bookId) {
+            const bk=this.books.find(x=>x.id===bookId);if(!bk)return;
+            // Show inline form instead of prompt - handled by render
+            this.logBookTarget=bookId;this.render();
+        },
+        submitReadingLog(bookId,words,note) {
+            const bk=this.books.find(x=>x.id===bookId);if(!bk)return;
+            this.readingLogs.push({id:Date.now(),bookId,words:parseInt(words),note:note||'',date:new Date()});
+            bk.totalWords=(bk.totalWords||0)+parseInt(words);
+            this.logBookTarget=null;this.saveData();this.render();
+        },
+        submitQuickLog(words,note) {
+            this.readingLogs.push({id:Date.now(),bookId:null,words:parseInt(words),note:note||'General reading',date:new Date()});
+            this.saveData();this.render();
+        },
+        updateBookPage(bookId,pageNum) {
+            const bk=this.books.find(x=>x.id===bookId);if(!bk)return;
+            bk.currentPageNum=parseInt(pageNum);
+            const wpp=this.getWordsPerPage(bk.genre);
+            bk.estimatedWordsRead=bk.currentPageNum*wpp;
+            this.saveData();this.render();
+        },
+        getTodayWords() {
+            const todayStr=new Date().toDateString();
+            return this.readingLogs.filter(l=>new Date(l.date).toDateString()===todayStr).reduce((s,l)=>s+l.words,0);
+        },
+        getTodayLogs() {
+            const todayStr=new Date().toDateString();
+            return this.readingLogs.filter(l=>new Date(l.date).toDateString()===todayStr);
+        },
+        getReadingStats() {
+            const now=new Date(),logs=this.readingLogs;
+            if(logs.length===0)return{totalWords:0,avgDay:0,avgWeek:0,avgMonth:0,avgYear:0,daysTracked:0,dailyData:[]};
+            const totalWords=logs.reduce((s,l)=>s+l.words,0);
+            const firstLog=new Date(Math.min(...logs.map(l=>new Date(l.date))));
+            const daysSinceFirst=Math.max(1,Math.ceil((now-firstLog)/(1000*60*60*24)));
+            const avgDay=Math.round(totalWords/daysSinceFirst);
+            // Words in last 7 days
+            const w7=new Date(now);w7.setDate(w7.getDate()-7);
+            const last7=logs.filter(l=>new Date(l.date)>=w7).reduce((s,l)=>s+l.words,0);
+            const avgWeek=Math.round(last7/7);
+            // Words in last 30 days
+            const w30=new Date(now);w30.setDate(w30.getDate()-30);
+            const last30=logs.filter(l=>new Date(l.date)>=w30).reduce((s,l)=>s+l.words,0);
+            const avgMonth=Math.round(last30/30);
+            const avgYear=Math.round(totalWords/Math.max(1,daysSinceFirst)*365);
+            // Daily data for graph (last 14 days)
+            const dailyData=[];
+            for(let i=13;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);const ds=d.toDateString();const dayWords=logs.filter(l=>new Date(l.date).toDateString()===ds).reduce((s,l)=>s+l.words,0);dailyData.push({date:d,words:dayWords,label:d.toLocaleDateString('en-US',{month:'short',day:'numeric'})});}
+            return{totalWords,avgDay,avgWeek,avgMonth,avgYear,daysTracked:daysSinceFirst,dailyData};
+        },
+        // Words-per-page estimates by genre
+        getWordsPerPage(genre) {
+            const wpp={'Fiction':250,'Non-Fiction':300,'Sci-Fi':260,'Fantasy':270,'Mystery':250,'Horror':250,'Romance':240,'Biography':280,'History':300,'Poetry':150,'Science':320,'Self-Help':280,'Other':260};
+            return wpp[genre]||260;
+        },
+        // Known word counts for popular books (for auto-fill)
+        knownWordCounts: {
+            'the great gatsby':47094,'to kill a mockingbird':100388,'1984':88942,'the catcher in the rye':73404,
+            'harry potter and the sorcerer\'s stone':77325,'harry potter and the chamber of secrets':84799,
+            'harry potter and the prisoner of azkaban':107253,'harry potter and the goblet of fire':190637,
+            'harry potter and the order of the phoenix':257045,'harry potter and the half-blood prince':168923,
+            'harry potter and the deathly hallows':198227,'the hobbit':95356,'lord of the rings':576459,
+            'the fellowship of the ring':187790,'the two towers':156198,'the return of the king':137115,
+            'pride and prejudice':122189,'brave new world':63766,'fahrenheit 451':46118,
+            'animal farm':29966,'the hunger games':99750,'catching fire':101564,'mockingjay':100269,
+            'divergent':105143,'the fault in our stars':67203,'percy jackson the lightning thief':87223,
+            'dune':188000,'ender\'s game':100609,'the maze runner':101000,'a wrinkle in time':49965,
+            'the giver':43617,'holes':47079,'hatchet':42000,'the outsiders':48523,
+            'wonder':73053,'diary of a wimpy kid':19784,'the hunger games':99750,
+            'twilight':118975,'the great alone':107000,'where the crawdads sing':98000,
+            'educated':94000,'sapiens':135000,'atomic habits':63000,'the alchemist':39000,
+            'the little prince':16600,'charlotte\'s web':31938,'matilda':30000,
+            'the lightning thief':87223,'the sea of monsters':63976,'the titan\'s curse':70186,
+            'the battle of the labyrinth':81917,'the last olympian':88150,
+            'the name of the wind':250000,'mistborn':214000,'a game of thrones':298000,
+            'the girl on the train':95000,'gone girl':145000,'the da vinci code':138952,
+            'the kite runner':107000,'life of pi':101000,'the book thief':118000,
+            'the perks of being a wallflower':62000,'speak':46000,'thirteen reasons why':62000
+        },
+        lookupWordCount(title) {
+            return this.knownWordCounts[title.toLowerCase().trim()] || null;
+        },
+
+        startStudyMode(deckId) {
+            const deck=this.flashcards.find(d=>d.id===deckId);if(!deck||deck.cards.length===0){alert('Add some cards first!');return;}
+            const ov=document.getElementById('studyOverlay');let idx=0,cor=0,wrn=0;const cards=[...deck.cards].sort(()=>Math.random()-0.5);
+            const rc=()=>{
+                if(idx>=cards.length){const pct=Math.round((cor/cards.length)*100);ov.innerHTML=`<div style="text-align:center;"><div style="font-size:48px;margin-bottom:16px;">${pct>=80?'🎉':pct>=50?'👍':'📖'}</div><div style="font-size:24px;font-weight:800;color:var(--text-primary);margin-bottom:8px;">Session Complete!</div><div style="font-size:16px;color:var(--text-secondary);margin-bottom:24px;">${deck.name}</div><div style="display:flex;gap:24px;justify-content:center;margin-bottom:32px;"><div style="text-align:center;"><div style="font-size:36px;font-weight:800;color:#10b981;">${cor}</div><div style="font-size:13px;color:var(--text-secondary);">Correct</div></div><div style="text-align:center;"><div style="font-size:36px;font-weight:800;color:#ef4444;">${wrn}</div><div style="font-size:13px;color:var(--text-secondary);">Missed</div></div><div style="text-align:center;"><div style="font-size:36px;font-weight:800;color:#2563eb;">${pct}%</div><div style="font-size:13px;color:var(--text-secondary);">Score</div></div></div><button class="study-btn close" id="studyCloseBtn">Close</button></div>`;document.getElementById('studyCloseBtn').addEventListener('click',()=>{ov.style.display='none';});return;}
+                const card=cards[idx];ov.innerHTML=`<div style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;">Card ${idx+1} of ${cards.length} · ✅ ${cor}  ❌ ${wrn}</div><div class="flashcard-study" id="studyCard"><div class="flashcard-inner" id="flashcardInner"><div class="flashcard-front"><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.1em;">Question</div>${card.front}</div></div><div class="flashcard-back"><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.1em;">Answer</div>${card.back}</div></div></div></div><div style="font-size:13px;color:var(--text-tertiary);margin-bottom:20px;">Tap card to flip</div><div style="display:flex;gap:16px;"><button class="study-btn wrong" id="studyWrong">✕ Missed</button><button class="study-btn correct" id="studyCorrect">✓ Got It</button></div><div style="margin-top:20px;"><button class="study-btn close" id="studyCloseBtn" style="padding:10px 20px;font-size:13px;">Exit</button></div>`;
+                document.getElementById('studyCard').addEventListener('click',()=>{document.getElementById('flashcardInner').classList.toggle('flipped');});
+                document.getElementById('studyCorrect').addEventListener('click',()=>{cor++;idx++;rc();});
+                document.getElementById('studyWrong').addEventListener('click',()=>{wrn++;idx++;rc();});
+                document.getElementById('studyCloseBtn').addEventListener('click',()=>{ov.style.display='none';});
+            };
+            ov.style.display='flex';rc();
+        },
+        showAddCardForm(deckId) {const dk=this.flashcards.find(d=>d.id===deckId);if(!dk)return;const f=prompt('Card front (question):');if(!f)return;const b=prompt('Card back (answer):');if(!b)return;dk.cards.push({front:f,back:b,id:Date.now()});this.saveData();this.render();},
+
+        deleteItem(type,id) {if(confirm('Delete this item?')){this[type]=this[type].filter(i=>i.id!==id);this.saveData();this.render();}},
+        toggleItem(type,id) {
+            const item=this[type].find(i=>i.id===id);if(item&&item.completed!==undefined){item.completed=!item.completed;this.saveData();this.render();
+            // Fish rain when all assignments completed
+            if(type==='assignments'&&this.assignments.length>0&&this.assignments.every(x=>x.completed)){fishRain();}}
+        },
+
+        getWeekStudyMinutes() {
+            const now=new Date(),weekAgo=new Date(now);weekAgo.setDate(weekAgo.getDate()-7);
+            return this.studySessions.filter(s=>new Date(s.date)>=weekAgo).reduce((sum,s)=>sum+s.minutes,0);
+        },
+
+        // ===== RENDER PAGES =====
+        renderDashboard() {
+            const today=new Date(),todayStr=today.toDateString();
+            const upcoming=this.assignments.filter(a=>{if(a.completed||!a.dueDate)return false;const due=new Date(a.dueDate+'T12:00:00');const diff=(due-today)/(1000*60*60*24);return diff>=-1&&diff<=7;}).sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+            const todayEvents=this.calendarEvents.filter(e=>e.date&&new Date(e.date+'T12:00:00').toDateString()===todayStr).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+            const tA=this.assignments.length,dA=this.assignments.filter(a=>a.completed).length;
+            const tT=this.tasks.length,dT=this.tasks.filter(t=>t.completed).length;
+            const sT=this.studySessions.reduce((s,x)=>s+x.minutes,0);
+            const nN=this.notes.filter(n=>n.category==='noah').length;
+            const hr=today.getHours();const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+            const weekMin=this.getWeekStudyMinutes(),goalPct=Math.min(100,Math.round((weekMin/this.weeklyStudyGoal)*100));
+
+            return `<div style="max-width:900px;">
+                <div style="margin-bottom:28px;"><div style="font-size:26px;font-weight:800;color:var(--text-primary);margin-bottom:4px;">${greet}, Noah 🌊</div><div style="color:var(--text-secondary);font-size:14px;">${today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div></div>
+                <div class="card" style="margin-bottom:24px;border-left:4px solid #0d9488;background:linear-gradient(135deg,rgba(13,148,136,0.1),rgba(4,120,87,0.05));"><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#0d9488;letter-spacing:0.08em;margin-bottom:6px;">Ocean Creature Fact of the Day</div><div style="font-size:14px;color:var(--text-primary);line-height:1.6;">${getDailyFact()}</div></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:24px;">
+                    <div class="card" style="text-align:center;border-top:3px solid #2563eb;">${completionRing(dA,tA||1,72,'#2563eb')}<div style="color:var(--text-secondary);font-size:13px;margin-top:8px;">Assignments</div><div style="font-size:11px;color:var(--text-tertiary);">${dA} of ${tA} done</div></div>
+                    <div class="card" style="text-align:center;border-top:3px solid #0d9488;">${completionRing(dT,tT||1,72,'#0d9488')}<div style="color:var(--text-secondary);font-size:13px;margin-top:8px;">Tasks</div><div style="font-size:11px;color:var(--text-tertiary);">${dT} of ${tT} done</div></div>
+                    <div class="card" style="text-align:center;border-top:3px solid #047857;"><div style="font-size:32px;font-weight:800;color:#047857;">${sT}</div><div style="color:var(--text-secondary);font-size:13px;margin-top:4px;">Study Minutes</div></div>
+                    <div class="card" style="text-align:center;border-top:3px solid #fb923c;"><div style="font-size:32px;font-weight:800;color:#fb923c;">${nN}</div><div style="color:var(--text-secondary);font-size:13px;margin-top:4px;">Don't Forgets</div></div>
+                </div>
+                <!-- Weekly Study Goal -->
+                <div class="card" style="margin-bottom:24px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div style="font-size:14px;font-weight:700;color:var(--text-primary);">📚 Weekly Study Goal</div><div style="font-size:13px;color:var(--text-secondary);">${weekMin} / ${this.weeklyStudyGoal} min</div></div>
+                    <div class="goal-bar-bg"><div class="goal-bar-fill" style="width:${goalPct}%;${goalPct>=100?'background:linear-gradient(90deg,#10b981,#059669);':''}"></div></div>
+                    <div style="font-size:12px;color:var(--text-tertiary);margin-top:6px;">${goalPct>=100?'🎉 Goal reached this week!':Math.round(this.weeklyStudyGoal-weekMin)+' min to go'}</div>
+                </div>
+                ${this.notes.filter(n=>n.pinned).length>0?`<div style="margin-bottom:24px;"><div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">📌 Pinned Notes</div>${this.notes.filter(n=>n.pinned).map(n=>`<div class="card" style="margin-bottom:10px;border-left:4px solid #f97316;padding:14px 16px;"><div style="font-weight:700;font-size:14px;">${n.title}</div><div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${n.content}</div></div>`).join('')}</div>`:''}
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+                    <div><div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">🪸 Due Soon</div>${upcoming.length===0?`<div class="card" style="text-align:center;color:var(--text-secondary);font-size:13px;">Nothing due in the next 7 days 🎉</div>`:upcoming.map(a=>{const co=CC[a.class]||'#047857';return`<div class="card" style="margin-bottom:10px;border-left:4px solid ${co};padding:14px 16px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div style="font-weight:700;font-size:14px;">${a.title}</div>${countdownBadge(a.dueDate)}</div><div style="display:flex;gap:8px;margin-top:6px;"><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(${hexToRgb(co)},0.18);color:${co};font-weight:700;">${a.class}</span></div></div>`;}).join('')}</div>
+                    <div><div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">📅 Today's Schedule</div>${todayEvents.length===0?`<div class="card" style="text-align:center;color:var(--text-secondary);font-size:13px;">No events today</div>`:todayEvents.map(e=>`<div class="card" style="margin-bottom:10px;border-left:4px solid #0369a1;padding:14px 16px;"><div style="font-weight:700;font-size:14px;">${e.title}</div>${e.time?`<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">🕐 ${e.time}</div>`:''}${e.note?`<div style="font-size:12px;color:var(--text-tertiary);margin-top:2px;">${e.note}</div>`:''}</div>`).join('')}
+                    ${this.notes.filter(n=>n.category==='noah').length>0?`<div style="font-size:15px;font-weight:700;color:#fb923c;margin:20px 0 14px;">🌊 Noah, Don't Forget!</div>${this.notes.filter(n=>n.category==='noah').slice(0,3).map(n=>`<div class="card" style="margin-bottom:10px;border-left:4px solid #fb923c;padding:14px 16px;"><div style="font-weight:700;font-size:14px;">${n.title}</div><div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${n.content}</div></div>`).join('')}`:''}</div>
+                </div></div>`;
+        },
+
+        renderCalendar() {
+            const today=new Date(),year=today.getFullYear(),month=today.getMonth(),firstDay=new Date(year,month,1),lastDay=new Date(year,month+1,0),daysInMonth=lastDay.getDate(),startDow=firstDay.getDay();
+            const aByDay={},eByDay={};
+            this.assignments.forEach(a=>{if(!a.dueDate)return;const d=new Date(a.dueDate+'T12:00:00');if(d.getFullYear()===year&&d.getMonth()===month){const dy=d.getDate();if(!aByDay[dy])aByDay[dy]=[];aByDay[dy].push(a);}});
+            this.calendarEvents.forEach(e=>{if(!e.date)return;const d=new Date(e.date+'T12:00:00');if(d.getFullYear()===year&&d.getMonth()===month){const dy=d.getDate();if(!eByDay[dy])eByDay[dy]=[];eByDay[dy].push(e);}});
+            let html=`<div style="display:grid;grid-template-columns:1fr 320px;gap:28px;align-items:start;"><div><h3 style="margin-bottom:20px;color:var(--text-primary);">${firstDay.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</h3><div class="grid" style="grid-template-columns:repeat(7,1fr);gap:8px;">`;
+            ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d=>{html+=`<div style="text-align:center;font-weight:600;color:var(--text-secondary);padding:8px 0;font-size:12px;">${d}</div>`;});
+            for(let i=0;i<startDow;i++)html+=`<div></div>`;
+            for(let day=1;day<=daysInMonth;day++){const isToday=day===today.getDate();const bg=isToday?'background:linear-gradient(135deg,#047857,#059669);color:#f0f9ff;font-weight:bold;':'background:var(--glass-bg);';const da=aByDay[day]||[],de=eByDay[day]||[];let dots='';if(da.length>0||de.length>0){dots=`<div style="display:flex;justify-content:center;gap:3px;flex-wrap:wrap;margin-top:5px;">`;da.slice(0,3).forEach(a=>{dots+=`<div style="width:7px;height:7px;border-radius:50%;background:${CC[a.class]||'#047857'};"></div>`;});de.forEach(()=>{dots+=`<div style="width:7px;height:7px;border-radius:50%;background:#f97316;"></div>`;});dots+=`</div>`;}html+=`<div style="padding:8px 4px;text-align:center;border:1px solid var(--glass-border);border-radius:8px;${bg}min-height:52px;font-size:13px;"><div>${day}</div>${dots}</div>`;}
+            html+=`</div><div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;padding:10px 12px;background:var(--glass-bg);border-radius:10px;border:1px solid var(--glass-border);">${Object.entries(CC).map(([c,co])=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);"><div style="width:8px;height:8px;border-radius:50%;background:${co};"></div>${c}</div>`).join('')}<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);"><div style="width:8px;height:8px;border-radius:50%;background:#f97316;"></div>Event</div></div></div>`;
+            html+=`<div><div class="form-section" style="margin-top:0;"><h3 style="margin-bottom:16px;color:var(--text-primary);">➕ Add Event</h3><form id="calEventForm" style="display:flex;flex-direction:column;gap:12px;"><div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" name="title" placeholder="e.g. Doctor appointment" required></div><div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" name="date" required></div><div class="form-group"><label class="form-label">Time (optional)</label><input type="time" class="form-input" name="time"></div><div class="form-group"><label class="form-label">Note (optional)</label><input type="text" class="form-input" name="note" placeholder="Details..."></div><button type="submit" class="btn btn-primary">Add to Calendar</button></form></div>`;
+            if(this.calendarEvents.length>0){html+=`<div style="margin-top:20px;"><div style="font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:10px;text-transform:uppercase;">Upcoming Events</div>${this.calendarEvents.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).map(e=>`<div class="card" style="margin-bottom:10px;border-left:4px solid #f97316;padding:12px 14px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="font-weight:700;font-size:13px;">${e.title}</div><div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">📅 ${new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}${e.time?' 🕐 '+e.time:''}</div>${e.note?`<div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">${e.note}</div>`:''}</div><button class="btn-delete" data-delete data-type="calendarEvents" data-id="${e.id}">✕</button></div></div>`).join('')}</div>`;}
+            html+=`</div></div>`;return html;
+        },
+
+        renderTasks() {
+            let html=`<div class="grid">`;
+            if(this.tasks.length===0)html+=`<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">🌊</div><div>No tasks yet!</div></div>`;
+            else this.tasks.forEach(t=>{html+=`<div class="card"><div class="checkbox-wrapper"><div class="checkbox ${t.completed?'checked':''}" data-toggle data-type="tasks" data-id="${t.id}"></div><div style="flex:1;"><div class="card-title" style="${t.completed?'text-decoration:line-through;opacity:0.6;':''}">${t.title}</div><div class="card-text">${t.description||''}</div><div class="card-footer">${priorityTag(t.priority)}${t.dueDate?countdownBadge(t.dueDate):''}<button class="btn-delete" data-delete data-type="tasks" data-id="${t.id}">✕</button></div></div></div></div>`;});
+            html+=`</div><div class="form-section"><h3 style="margin-bottom:20px;color:var(--text-primary);">Add New Task</h3><form id="taskForm" style="display:flex;flex-direction:column;gap:16px;"><div class="form-group"><label class="form-label">Task Title</label><input type="text" class="form-input" name="title" placeholder="What do you need to do?" required></div><div class="form-group"><label class="form-label">Description</label><textarea class="form-input" name="description" placeholder="Add details..."></textarea></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;"><div class="form-group"><label class="form-label">Priority</label><select class="form-input" name="priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div><div class="form-group"><label class="form-label">Due Date</label><input type="date" class="form-input" name="dueDate" required></div></div><button type="submit" class="btn btn-primary">Add Task</button></form></div>`;
+            return html;
+        },
+
+        renderAssignments() {
+            const classes=['all','Environmental','Space','Math','Health','Film','Anatomy'];
+            let html=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">${classes.map(cls=>{const co=cls==='all'?'#047857':CC[cls];const act=this.activeClassTab===cls;return`<button data-classtab="${cls}" style="padding:8px 16px;border-radius:20px;border:2px solid ${co};cursor:pointer;font-family:'OpenDyslexic',Arial,sans-serif;font-size:12px;font-weight:700;background:${act?co:'transparent'};color:${act?'#fff':co};">${cls==='all'?'🌊 All':cls}</button>`;}).join('')}</div>`;
+            html+=`<div class="sort-bar"><span style="font-weight:700;">Sort:</span><button class="sort-btn ${this.assignmentSort==='due'?'active':''}" data-sort="due">Due Date</button><button class="sort-btn ${this.assignmentSort==='priority'?'active':''}" data-sort="priority">Priority</button><button class="sort-btn ${this.assignmentSort==='class'?'active':''}" data-sort="class">Class</button></div>`;
+            let filtered=this.activeClassTab==='all'?[...this.assignments]:this.assignments.filter(a=>a.class===this.activeClassTab);
+            const priOrd={high:0,medium:1,low:2};
+            if(this.assignmentSort==='due')filtered.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+            else if(this.assignmentSort==='priority')filtered.sort((a,b)=>(priOrd[a.priority]||1)-(priOrd[b.priority]||1));
+            else if(this.assignmentSort==='class')filtered.sort((a,b)=>a.class.localeCompare(b.class));
+            html+=`<div class="grid">`;
+            if(filtered.length===0)html+=`<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">📚</div><div>No assignments yet!</div></div>`;
+            else filtered.forEach(a=>{const co=CC[a.class]||'#047857';html+=`<div class="card" style="border-left:4px solid ${co};"><div class="checkbox-wrapper"><div class="checkbox ${a.completed?'checked':''}" data-toggle data-type="assignments" data-id="${a.id}"></div><div style="flex:1;"><div class="card-title" style="${a.completed?'text-decoration:line-through;opacity:0.6;':''}">${a.title}</div><div class="card-text">${a.description||''}</div><div class="card-footer"><span class="tag" style="background:rgba(${hexToRgb(co)},0.2);color:${co};">${a.class}</span>${priorityTag(a.priority)}${a.dueDate?countdownBadge(a.dueDate):''}<div style="display:flex;gap:4px;"><button class="btn-delete" title="Archive" data-archive="${a.id}" style="color:var(--text-tertiary);">🗄️</button><button class="btn-delete" data-delete data-type="assignments" data-id="${a.id}">✕</button></div></div></div></div></div>`;});
+            html+=`</div><div class="form-section"><h3 style="margin-bottom:20px;color:var(--text-primary);">Add Assignment</h3><form id="assignmentForm" style="display:flex;flex-direction:column;gap:16px;"><div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" name="title" placeholder="Assignment name..." required></div><div class="form-group"><label class="form-label">Description</label><textarea class="form-input" name="description" placeholder="Details..."></textarea></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;"><div class="form-group"><label class="form-label">Class</label><select class="form-input" name="class" required><option value="">Select</option><option value="Environmental">Environmental</option><option value="Space">Space</option><option value="Math">Math</option><option value="Health">Health</option><option value="Film">Film</option><option value="Anatomy">Anatomy</option></select></div><div class="form-group"><label class="form-label">Priority</label><select class="form-input" name="priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div></div><div class="form-group"><label class="form-label">Due Date</label><input type="date" class="form-input" name="dueDate" required></div><button type="submit" class="btn btn-primary">Add Assignment</button></form></div>`;
+            return html;
+        },
+
+        renderNotes() {
+            const pinned=this.notes.filter(n=>n.pinned), unpinned=this.notes.filter(n=>!n.pinned);
+            const renderNote=(n)=>{const co=this.getNoteColor(n);const lb=this.getNoteLabel(n);return`<div class="card" style="border-left:4px solid ${co};"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;"><div class="card-title" style="margin-bottom:0;">${n.title}</div><div style="display:flex;gap:6px;align-items:center;"><span style="padding:3px 8px;border-radius:12px;font-size:11px;font-weight:700;background:rgba(${hexToRgb(co)},0.18);color:${co};white-space:nowrap;">${lb}</span><button class="pin-btn" data-pin="${n.id}">${n.pinned?'📌':'📍'}</button></div></div><div class="card-text">${n.content}</div><div class="card-footer"><span>📅 ${new Date(n.date).toLocaleDateString()}</span><button class="btn-delete" data-delete data-type="notes" data-id="${n.id}">✕</button></div></div>`;};
+            let html='';
+            if(pinned.length>0){html+=`<div style="margin-bottom:20px;"><div style="font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:10px;text-transform:uppercase;">📌 Pinned</div><div class="grid">${pinned.map(renderNote).join('')}</div></div>`;}
+            html+=`<div class="grid">`;
+            if(unpinned.length===0&&pinned.length===0)html+=`<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">📝</div><div>No notes yet!</div></div>`;
+            else unpinned.forEach(n=>{html+=renderNote(n);});
+            html+=`</div>`;
+            html+=`<div class="form-section"><h3 style="margin-bottom:20px;color:var(--text-primary);">Write a Note</h3><form id="noteForm" style="display:flex;flex-direction:column;gap:16px;"><div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" name="title" placeholder="Title..." required></div><div class="form-group"><label class="form-label">Content</label><textarea class="form-input" name="content" placeholder="Write your thoughts..." required></textarea></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;"><div class="form-group"><label class="form-label">Class (optional)</label><select class="form-input" name="noteClass"><option value="">— None —</option><option value="Environmental">Environmental</option><option value="Space">Space</option><option value="Math">Math</option><option value="Health">Health</option><option value="Film">Film</option><option value="Anatomy">Anatomy</option></select></div><div class="form-group"><label class="form-label">Category (optional)</label><select class="form-input" name="category"><option value="">— None —</option><option value="important">⚠️ Important</option><option value="noah">🌊 Noah Don't Forget</option><option value="extracurricular">🎭 Extracurricular</option><option value="grades">📊 Grades</option></select></div></div><button type="submit" class="btn btn-primary">Save Note</button></form></div>`;
+            return html;
+        },
+        getNoteColor(n){const cat={'important':'#f97316','noah':'#fb923c','extracurricular':'#fdba74','grades':'#c2410c'};if(n.category&&cat[n.category])return cat[n.category];if(n.noteClass&&CC[n.noteClass])return CC[n.noteClass];return'#7a8fa0';},
+        getNoteLabel(n){const cat={'important':'⚠️ Important','noah':"🌊 Noah Don't Forget",'extracurricular':'🎭 Extra','grades':'📊 Grades'};if(n.category&&cat[n.category])return cat[n.category];if(n.noteClass)return`📖 ${n.noteClass}`;return'📝 Note';},
+
+        renderStudy() {
+            const weekMin=this.getWeekStudyMinutes(),goalPct=Math.min(100,Math.round((weekMin/this.weeklyStudyGoal)*100));
+            let html=`<div style="display:grid;grid-template-columns:300px 1fr;gap:20px;"><div><div class="form-section" style="margin-top:0;"><h3 style="margin-bottom:16px;color:var(--text-primary);">Log Session</h3><form id="studyForm" style="display:flex;flex-direction:column;gap:12px;"><div class="form-group"><label class="form-label">Subject</label><select class="form-input" name="subject"><option>Math</option><option>Anatomy</option><option>Environmental</option><option>Space</option><option>Health</option><option>Film</option></select></div><div class="form-group"><label class="form-label">Minutes</label><input type="number" class="form-input" name="minutes" value="30" min="1" max="480" required></div><button type="submit" class="btn btn-primary">Log Session</button></form></div><div class="card" style="margin-top:16px;"><div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">Weekly Goal</div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:6px;"><span>${weekMin} min this week</span><span>Goal: <input type="number" id="studyGoalInput" value="${this.weeklyStudyGoal}" min="10" max="1000" style="width:50px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:var(--surface-light);color:var(--text-primary);font-family:'OpenDyslexic';font-size:12px;"> min</span></div><div class="goal-bar-bg"><div class="goal-bar-fill" style="width:${goalPct}%;"></div></div></div></div><div><h3 style="margin-bottom:16px;color:var(--text-primary);">Sessions</h3><div class="grid" style="grid-template-columns:1fr;">`;
+            if(this.studySessions.length===0)html+=`<div style="color:var(--text-secondary);text-align:center;padding:20px;">No sessions yet</div>`;
+            else{const tot=this.studySessions.reduce((s,x)=>s+x.minutes,0);html+=`<div class="card" style="background:linear-gradient(135deg,rgba(4,120,87,0.15),rgba(5,150,105,0.08));"><div style="font-size:24px;font-weight:700;color:#047857;margin-bottom:8px;">${tot} min</div><div style="color:var(--text-secondary);">Total all time</div></div>`;this.studySessions.slice().reverse().forEach(s=>{html+=`<div class="card"><div class="card-title">${s.subject}</div><div class="card-text">${s.minutes} minutes</div><div class="card-footer"><span>📅 ${new Date(s.date).toLocaleDateString()}</span><button class="btn-delete" data-delete data-type="studySessions" data-id="${s.id}">✕</button></div></div>`;});}
+            html+=`</div></div></div>`;return html;
+        },
+
+        renderFlashcards() {
+            const fc=['all','Environmental','Math','Film','Anatomy'],fcc={'Environmental':'#0d9488','Math':'#2563eb','Film':'#0891b2','Anatomy':'#14b8a6'};
+            let html=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">${fc.map(cls=>{const co=cls==='all'?'#047857':fcc[cls];const act=this.activeFlashcardTab===cls;return`<button data-fctab="${cls}" style="padding:8px 16px;border-radius:20px;border:2px solid ${co};cursor:pointer;font-family:'OpenDyslexic',Arial,sans-serif;font-size:12px;font-weight:700;background:${act?co:'transparent'};color:${act?'#fff':co};">${cls==='all'?'🌊 All':cls}</button>`;}).join('')}</div>`;
+            const filtered=this.activeFlashcardTab==='all'?this.flashcards:this.flashcards.filter(d=>d.fcClass===this.activeFlashcardTab);
+            html+=`<div class="grid">`;
+            if(filtered.length===0)html+=`<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">🎴</div><div>No decks yet</div></div>`;
+            else filtered.forEach(dk=>{const co=fcc[dk.fcClass]||'#047857';html+=`<div class="card" style="border-left:4px solid ${co};"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div class="card-title" style="margin-bottom:4px;">${dk.name}</div>${dk.fcClass?`<span style="font-size:11px;padding:3px 8px;border-radius:12px;font-weight:700;background:rgba(${hexToRgb(co)},0.18);color:${co};">${dk.fcClass}</span>`:''}</div><div class="card-text">${dk.cards.length} cards</div><div class="card-footer"><div style="display:flex;gap:8px;"><button class="btn btn-primary btn-sm" data-addcard-deck="${dk.id}">+ Card</button>${dk.cards.length>0?`<button class="btn btn-secondary btn-sm" data-study-deck="${dk.id}">▶ Study</button>`:''}</div><button class="btn-delete" data-delete data-type="flashcards" data-id="${dk.id}">✕</button></div></div>`;});
+            html+=`</div><div class="form-section"><h3 style="margin-bottom:20px;color:var(--text-primary);">Create Deck</h3><form id="deckForm" style="display:flex;flex-direction:column;gap:16px;"><div class="form-group"><label class="form-label">Deck Name</label><input type="text" class="form-input" name="name" placeholder="e.g., Chapter 4 Terms" required></div><div class="form-group"><label class="form-label">Class</label><select class="form-input" name="fcClass"><option value="">— None —</option><option value="Environmental">Environmental</option><option value="Math">Math</option><option value="Film">Film</option><option value="Anatomy">Anatomy</option></select></div><button type="submit" class="btn btn-primary">Create Deck</button></form></div>`;
+            return html;
+        },
+
+        renderVocab() {
+            const vc=['all','Environmental','Math','Film','Anatomy'],vcc={'Environmental':'#0d9488','Math':'#2563eb','Film':'#0891b2','Anatomy':'#14b8a6'};
+            let html=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">${vc.map(cls=>{const co=cls==='all'?'#047857':vcc[cls];const act=this.activeVocabTab===cls;return`<button data-vocabtab="${cls}" style="padding:8px 16px;border-radius:20px;border:2px solid ${co};cursor:pointer;font-family:'OpenDyslexic',Arial,sans-serif;font-size:12px;font-weight:700;background:${act?co:'transparent'};color:${act?'#fff':co};">${cls==='all'?'🌊 All':cls}</button>`;}).join('')}</div>`;
+            const filtered=this.activeVocabTab==='all'?this.vocab:this.vocab.filter(v=>v.vocabClass===this.activeVocabTab);
+            html+=`<div class="grid">`;
+            if(filtered.length===0)html+=`<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">📚</div><div>No vocabulary yet</div></div>`;
+            else filtered.forEach(t=>{const co=vcc[t.vocabClass]||'#047857';html+=`<div class="card" style="border-left:4px solid ${co};"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;"><div class="card-title" style="color:${co};margin-bottom:0;">${t.word}</div>${t.vocabClass?`<span style="padding:3px 8px;border-radius:12px;font-size:11px;font-weight:700;background:rgba(${hexToRgb(co)},0.18);color:${co};">${t.vocabClass}</span>`:''}</div><div class="card-text">${t.definition}</div>${t.example?`<div class="card-text" style="font-style:italic;font-size:12px;">Example: ${t.example}</div>`:''}<div class="card-footer"><button class="btn-delete" data-delete data-type="vocab" data-id="${t.id}">✕</button></div></div>`;});
+            html+=`</div><div class="form-section"><h3 style="margin-bottom:20px;color:var(--text-primary);">Add Word</h3><form id="vocabForm" style="display:flex;flex-direction:column;gap:16px;"><div class="form-group"><label class="form-label">Word</label><input type="text" class="form-input" name="word" placeholder="Word..." required></div><div class="form-group"><label class="form-label">Definition</label><textarea class="form-input" name="definition" placeholder="Definition..." required></textarea></div><div class="form-group"><label class="form-label">Example (optional)</label><input type="text" class="form-input" name="example" placeholder="Example sentence..."></div><div class="form-group"><label class="form-label">Class</label><select class="form-input" name="vocabClass"><option value="">— None —</option><option value="Environmental">Environmental</option><option value="Math">Math</option><option value="Film">Film</option><option value="Anatomy">Anatomy</option></select></div><button type="submit" class="btn btn-primary">Add Word</button></form></div>`;
+            return html;
+        },
+
+        renderGrades() {
+            const allC=['Environmental','Space','Math','Health','Film','Anatomy'];
+            let html=`<div style="max-width:900px;"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px;margin-bottom:28px;">`;
+            allC.forEach(cls=>{const g=this.grades.filter(x=>x.gradeClass===cls);const co=CC[cls];const avg=g.length>0?Math.round(g.reduce((s,x)=>s+x.score,0)/g.length):0;html+=`<div class="card" style="text-align:center;padding:16px;">${completionRing(avg,100,80,co)}<div style="font-size:12px;font-weight:700;color:${co};margin-top:8px;">${cls}</div><div style="font-size:11px;color:var(--text-tertiary);">${g.length} grades</div></div>`;});
+            html+=`</div><div class="grid" style="grid-template-columns:1fr;">`;
+            if(this.grades.length===0)html+=`<div class="empty-state"><div class="empty-state-icon">📊</div><div>No grades yet!</div></div>`;
+            else this.grades.slice().reverse().forEach(g=>{const co=CC[g.gradeClass]||'#047857';const sc=g.score>=90?'#10b981':g.score>=80?'#047857':g.score>=70?'#d97706':'#ef4444';html+=`<div class="card" style="border-left:4px solid ${co};"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div class="card-title" style="margin-bottom:4px;">${g.name}</div><div style="display:flex;gap:8px;align-items:center;"><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(${hexToRgb(co)},0.18);color:${co};font-weight:700;">${g.gradeClass}</span><span style="font-size:12px;color:var(--text-tertiary);">📅 ${new Date(g.date).toLocaleDateString()}</span></div></div><div style="display:flex;align-items:center;gap:12px;"><div style="font-size:24px;font-weight:800;color:${sc};">${g.score}%</div><button class="btn-delete" data-delete data-type="grades" data-id="${g.id}">✕</button></div></div></div>`;});
+            html+=`</div><div class="form-section"><h3 style="margin-bottom:20px;color:var(--text-primary);">Add Grade</h3><form id="gradeForm" style="display:flex;flex-direction:column;gap:16px;"><div class="form-group"><label class="form-label">Name</label><input type="text" class="form-input" name="name" placeholder="e.g. Chapter 3 Quiz" required></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;"><div class="form-group"><label class="form-label">Class</label><select class="form-input" name="gradeClass" required><option value="">Select</option><option value="Environmental">Environmental</option><option value="Space">Space</option><option value="Math">Math</option><option value="Health">Health</option><option value="Film">Film</option><option value="Anatomy">Anatomy</option></select></div><div class="form-group"><label class="form-label">Score (%)</label><input type="number" class="form-input" name="score" min="0" max="100" placeholder="85" required></div></div><button type="submit" class="btn btn-primary">Add Grade</button></form></div></div>`;
+            return html;
+        },
+
+        renderReading() {
+            const stats=this.getReadingStats();const topFive=this.books.filter(b=>b.topFive).slice(0,5);
+            const reading=this.books.filter(b=>b.status==='reading');const finished=this.books.filter(b=>b.status==='finished');const wantToRead=this.books.filter(b=>b.status==='want');
+            const GC={'Fiction':'#0d9488','Non-Fiction':'#2563eb','Sci-Fi':'#0369a1','Fantasy':'#7c3aed','Mystery':'#0891b2','Horror':'#991b1b','Romance':'#db2777','Biography':'#d97706','History':'#c2410c','Poetry':'#14b8a6','Science':'#06b6d4','Self-Help':'#059669','Other':'#7a8fa0'};
+            const genreCounts={};this.books.forEach(b=>{if(b.genre){genreCounts[b.genre]=(genreCounts[b.genre]||0)+1;}});
+            const topGenres=Object.entries(genreCounts).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>x[0]);
+            const suggestions={'Fiction':['The Great Gatsby','To Kill a Mockingbird','1984','The Catcher in the Rye','Beloved'],'Non-Fiction':['Sapiens','Educated','Outliers','The Immortal Life of Henrietta Lacks','Thinking Fast and Slow'],'Sci-Fi':['Dune','Ender\'s Game','The Left Hand of Darkness','Neuromancer','The Hitchhiker\'s Guide'],'Fantasy':['The Name of the Wind','Mistborn','The Hobbit','A Wizard of Earthsea','Percy Jackson'],'Mystery':['And Then There Were None','Gone Girl','The Girl with the Dragon Tattoo','Big Little Lies','In the Woods'],'Horror':['The Shining','Mexican Gothic','House of Leaves','The Haunting of Hill House','Bird Box'],'Romance':['Pride and Prejudice','The Notebook','Beach Read','Red White & Royal Blue','The Hating Game'],'Biography':['Steve Jobs','Becoming','The Diary of a Young Girl','Long Walk to Freedom','Born a Crime'],'History':['A People\'s History','The Wright Brothers','Unbroken','Guns Germs and Steel','The Devil in the White City'],'Poetry':['Milk and Honey','The Sun and Her Flowers','Leaves of Grass','Where the Sidewalk Ends','The Waste Land'],'Science':['A Short History of Nearly Everything','The Elegant Universe','Cosmos','Silent Spring','The Gene'],'Self-Help':['Atomic Habits','The 7 Habits','How to Win Friends','Mindset','The Subtle Art'],'Other':['The Alchemist','Tuesdays with Morrie','Man\'s Search for Meaning','The Little Prince','Siddhartha']};
+            const readTitles=this.books.map(b=>b.title.toLowerCase());let recs=[];topGenres.forEach(g=>{if(suggestions[g])suggestions[g].forEach(s=>{if(!readTitles.includes(s.toLowerCase())&&recs.length<5)recs.push({title:s,genre:g});});});
+            if(recs.length<3)Object.entries(suggestions).forEach(([g,t])=>{t.forEach(s=>{if(!readTitles.includes(s.toLowerCase())&&recs.length<5&&!recs.find(r=>r.title===s))recs.push({title:s,genre:g});});});
+            const todayWords=this.getTodayWords();const todayLogs=this.getTodayLogs();
+            let html=`<div style="max-width:960px;">`;
+            // TODAY'S READING
+            html+=`<div class="card" style="margin-bottom:20px;border-left:4px solid #10b981;background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(4,120,87,0.04));"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#10b981;letter-spacing:0.08em;margin-bottom:4px;">Today's Reading</div><div style="font-size:28px;font-weight:800;color:#10b981;">${todayWords.toLocaleString()} <span style="font-size:14px;font-weight:600;color:var(--text-secondary);">words</span></div></div><div style="display:flex;gap:16px;">${todayLogs.length>0?todayLogs.map(l=>{const bk=this.books.find(b=>b.id===l.bookId);return`<div style="text-align:center;"><div style="font-size:13px;font-weight:700;color:var(--text-primary);">${l.words.toLocaleString()}</div><div style="font-size:10px;color:var(--text-tertiary);">${bk?bk.title.substring(0,15):'General'}${l.note?' · '+l.note.substring(0,12):''}</div><div style="font-size:9px;color:var(--text-tertiary);">${new Date(l.date).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div></div>`;}).join(''):`<div style="font-size:12px;color:var(--text-tertiary);padding:8px;">No entries yet today</div>`}</div></div></div>`;
+            // STATS
+            html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:20px;"><div class="card" style="text-align:center;border-top:3px solid #2563eb;padding:14px;"><div style="font-size:24px;font-weight:800;color:#2563eb;">${stats.totalWords.toLocaleString()}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Total Words</div></div><div class="card" style="text-align:center;border-top:3px solid #0d9488;padding:14px;"><div style="font-size:24px;font-weight:800;color:#0d9488;">${stats.avgDay.toLocaleString()}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Avg / Day</div></div><div class="card" style="text-align:center;border-top:3px solid #047857;padding:14px;"><div style="font-size:24px;font-weight:800;color:#047857;">${stats.avgWeek.toLocaleString()}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Avg / Day (7d)</div></div><div class="card" style="text-align:center;border-top:3px solid #059669;padding:14px;"><div style="font-size:24px;font-weight:800;color:#059669;">${stats.avgMonth.toLocaleString()}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Avg / Day (30d)</div></div><div class="card" style="text-align:center;border-top:3px solid #fb923c;padding:14px;"><div style="font-size:24px;font-weight:800;color:#fb923c;">${stats.avgYear.toLocaleString()}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Projected / Year</div></div><div class="card" style="text-align:center;border-top:3px solid #7c3aed;padding:14px;"><div style="font-size:24px;font-weight:800;color:#7c3aed;">${this.books.length}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Total Books</div></div></div>`;
+            // GRAPH
+            if(stats.dailyData&&stats.dailyData.length>0){const maxW=Math.max(...stats.dailyData.map(d=>d.words),1);html+=`<div class="card" style="margin-bottom:24px;padding:20px;"><div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:16px;">📈 Words Read — Last 14 Days</div><div style="display:flex;align-items:flex-end;gap:6px;height:140px;">${stats.dailyData.map(d=>{const h=d.words===0?2:Math.max(4,Math.round((d.words/maxW)*120));const isToday=d.date.toDateString()===new Date().toDateString();return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="font-size:9px;color:var(--text-tertiary);${d.words>0?'':'opacity:0.4;'}">${d.words>0?d.words.toLocaleString():''}</div><div style="width:100%;height:${h}px;background:${isToday?'linear-gradient(180deg,#10b981,#047857)':d.words>0?'linear-gradient(180deg,#059669,#047857)':'var(--border)'};border-radius:4px 4px 0 0;transition:height 0.5s ease;" title="${d.label}: ${d.words.toLocaleString()} words"></div><div style="font-size:8px;color:var(--text-tertiary);${isToday?'color:#10b981;font-weight:700;':''}">${d.label.split(' ')[1]}</div></div>`;}).join('')}</div></div>`;}
+            // QUICK LOG
+            html+=`<div class="card" style="margin-bottom:24px;padding:20px;"><div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:12px;">⚡ Quick Log Words</div><form id="quickLogForm" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;"><div><label style="font-size:11px;color:var(--text-tertiary);display:block;margin-bottom:4px;">Words</label><input type="number" class="form-input" name="words" style="width:120px;padding:8px 10px;" placeholder="5000" min="1" required></div><div style="flex:1;min-width:150px;"><label style="font-size:11px;color:var(--text-tertiary);display:block;margin-bottom:4px;">Note (optional)</label><input type="text" class="form-input" name="note" style="padding:8px 10px;" placeholder="What were you reading?"></div><button type="submit" class="btn btn-primary btn-sm" style="margin-bottom:1px;">+ Log</button></form></div>`;
+            // INLINE BOOK LOG
+            if(this.logBookTarget){const logBook=this.books.find(b=>b.id===this.logBookTarget);if(logBook){const wpp=this.getWordsPerPage(logBook.genre);html+=`<div class="card" style="margin-bottom:24px;border:2px solid #047857;padding:24px;"><div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">📝 Log Reading — ${logBook.title}</div><div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">by ${logBook.author}${logBook.bookTotalWords?' · '+logBook.bookTotalWords.toLocaleString()+' words total':''}</div><form id="readingLogForm" style="display:flex;flex-direction:column;gap:14px;"><input type="hidden" name="bookId" value="${logBook.id}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div class="form-group" style="margin-bottom:0;"><label class="form-label">Words Read</label><input type="number" class="form-input" name="words" id="readingWordsInput" placeholder="e.g. 5000" min="1" required></div><div class="form-group" style="margin-bottom:0;"><label class="form-label">Note (optional)</label><input type="text" class="form-input" name="note" placeholder="Ch. 3-5, lunch break..."></div></div><div class="card" style="padding:14px;background:rgba(4,120,87,0.08);border:1px dashed rgba(4,120,87,0.3);"><div style="font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:10px;">📄 Page-to-Words Calculator</div><div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;"><div><label style="font-size:11px;color:var(--text-tertiary);display:block;margin-bottom:4px;">Pages read</label><input type="number" id="pageCalcPages" class="form-input" style="width:90px;padding:8px 10px;" placeholder="20" min="1"></div><div><label style="font-size:11px;color:var(--text-tertiary);display:block;margin-bottom:4px;">Words/page</label><input type="number" id="pageCalcWpp" class="form-input" style="width:90px;padding:8px 10px;" value="${wpp}" min="1"></div><button type="button" class="btn btn-secondary btn-sm" id="pageCalcBtn">Calculate</button><div style="font-size:11px;color:var(--text-tertiary);padding-bottom:6px;">~${wpp} wpp for ${logBook.genre||'avg'}</div></div></div><div style="display:flex;gap:8px;"><button type="submit" class="btn btn-primary">Log Words</button><button type="button" class="btn btn-secondary" id="cancelLogBtn">Cancel</button></div></form></div>`;}}
+            // TOP 5
+            html+=`<div style="margin-bottom:28px;"><div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">⭐ Top 5 Shelf</div>`;
+            if(topFive.length===0)html+=`<div class="card" style="text-align:center;color:var(--text-secondary);font-size:13px;">Star your favorites to add them here!</div>`;
+            else html+=`<div style="display:flex;gap:16px;overflow-x:auto;padding-bottom:8px;">${topFive.map(b=>{const gc=GC[b.genre]||'#7a8fa0';return`<div class="card" style="min-width:150px;text-align:center;border-top:3px solid ${gc};flex-shrink:0;"><div style="font-size:36px;margin-bottom:8px;">📕</div><div style="font-size:13px;font-weight:700;margin-bottom:4px;">${b.title}</div><div style="font-size:11px;color:var(--text-secondary);">${b.author}</div>${b.bookTotalWords?`<div style="font-size:10px;color:var(--text-tertiary);margin-top:4px;">${b.bookTotalWords.toLocaleString()} words</div>`:''}<div style="font-size:10px;margin-top:6px;padding:2px 8px;border-radius:8px;background:rgba(${hexToRgb(gc)},0.18);color:${gc};display:inline-block;font-weight:700;">${b.genre||'Unset'}</div></div>`;}).join('')}</div>`;
+            html+=`</div>`;
+            // SUGGESTIONS
+            if(recs.length>0)html+=`<div style="margin-bottom:28px;"><div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">💡 Suggested For You</div><div style="display:flex;gap:12px;flex-wrap:wrap;">${recs.map(r=>{const gc=GC[r.genre]||'#7a8fa0';return`<div class="card" style="padding:12px 16px;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">📗</span><div><div style="font-size:13px;font-weight:600;">${r.title}</div><div style="font-size:11px;color:${gc};font-weight:700;">${r.genre}</div></div></div>`;}).join('')}</div></div>`;
+            // CURRENTLY READING (with page tracker + progress bar)
+            if(reading.length>0)html+=`<div style="margin-bottom:24px;"><div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">📖 Currently Reading</div><div class="grid">${reading.map(b=>{const gc=GC[b.genre]||'#7a8fa0';const wpp=this.getWordsPerPage(b.genre);const estWords=b.currentPageNum?(b.currentPageNum*wpp):0;const pct=b.bookTotalWords&&estWords?Math.min(100,Math.round((estWords/b.bookTotalWords)*100)):0;const pctBar=b.bookTotalWords?`<div style="margin-top:8px;"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);margin-bottom:4px;"><span>Page ${b.currentPageNum||0}${b.bookTotalPages?' / '+b.bookTotalPages:''}</span><span>${pct}% · ~${estWords.toLocaleString()} words read</span></div><div class="goal-bar-bg" style="height:8px;"><div class="goal-bar-fill" style="width:${pct}%;height:8px;"></div></div></div>`:'';return`<div class="card" style="border-left:4px solid ${gc};"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div class="card-title" style="margin-bottom:4px;">${b.title}</div><div style="font-size:13px;color:var(--text-secondary);">by ${b.author}</div>${b.bookTotalWords?`<div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">${b.bookTotalWords.toLocaleString()} words in book</div>`:''}</div><button class="pin-btn" data-topfive="${b.id}">${b.topFive?'⭐':'☆'}</button></div><div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;"><span style="font-size:11px;padding:3px 8px;border-radius:8px;background:rgba(${hexToRgb(gc)},0.18);color:${gc};font-weight:700;">${b.genre||'No genre'}</span><span style="font-size:11px;color:var(--text-tertiary);">${(b.totalWords||0).toLocaleString()} words logged</span></div>${pctBar}<div style="display:flex;gap:8px;align-items:flex-end;margin-top:10px;flex-wrap:wrap;"><div><label style="font-size:10px;color:var(--text-tertiary);display:block;margin-bottom:3px;">I'm on page:</label><div style="display:flex;gap:6px;"><input type="number" id="pageInput_${b.id}" class="form-input" style="width:80px;padding:6px 8px;font-size:13px;" value="${b.currentPageNum||''}" placeholder="pg#" min="1"><button class="btn btn-secondary btn-sm" data-updatepage="${b.id}">Update</button></div></div></div><div class="card-footer" style="margin-top:10px;"><div style="display:flex;gap:6px;"><button class="btn btn-primary btn-sm" data-logread="${b.id}">📝 Log</button><button class="btn btn-secondary btn-sm" data-finishbook="${b.id}">✅ Done</button></div><button class="btn-delete" data-delete data-type="books" data-id="${b.id}">✕</button></div></div>`;}).join('')}</div></div>`;
+            // WANT TO READ
+            if(wantToRead.length>0)html+=`<div style="margin-bottom:24px;"><div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">📋 Want to Read</div><div class="grid">${wantToRead.map(b=>{const gc=GC[b.genre]||'#7a8fa0';return`<div class="card" style="border-left:4px solid ${gc};"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div class="card-title" style="margin-bottom:4px;">${b.title}</div><div style="font-size:13px;color:var(--text-secondary);">by ${b.author}</div>${b.bookTotalWords?`<div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">${b.bookTotalWords.toLocaleString()} words</div>`:''}</div><button class="pin-btn" data-topfive="${b.id}">${b.topFive?'⭐':'☆'}</button></div><div style="margin-top:8px;"><span style="font-size:11px;padding:3px 8px;border-radius:8px;background:rgba(${hexToRgb(gc)},0.18);color:${gc};font-weight:700;">${b.genre||'No genre'}</span></div><div class="card-footer" style="margin-top:10px;"><button class="btn-delete" data-delete data-type="books" data-id="${b.id}">✕</button></div></div>`;}).join('')}</div></div>`;
+            // FINISHED
+            if(finished.length>0)html+=`<div style="margin-bottom:24px;"><div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">✅ Finished (${finished.length})</div><div class="grid">${finished.map(b=>{const gc=GC[b.genre]||'#7a8fa0';return`<div class="card" style="border-left:4px solid ${gc};"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div class="card-title" style="margin-bottom:4px;">${b.title}</div><div style="font-size:13px;color:var(--text-secondary);">by ${b.author}</div></div><button class="pin-btn" data-topfive="${b.id}">${b.topFive?'⭐':'☆'}</button></div><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;"><span style="font-size:11px;padding:3px 8px;border-radius:8px;background:rgba(${hexToRgb(gc)},0.18);color:${gc};font-weight:700;">${b.genre||'No genre'}</span><span style="font-size:11px;color:var(--text-tertiary);">${(b.bookTotalWords||b.totalWords||0).toLocaleString()} words</span></div><div class="card-footer" style="margin-top:10px;"><button class="btn-delete" data-delete data-type="books" data-id="${b.id}">✕</button></div></div>`;}).join('')}</div></div>`;
+            // EMPTY
+            if(this.books.length===0)html+=`<div class="empty-state"><div class="empty-state-icon">📖</div><div>No books yet. Add your first one below!</div></div>`;
+            // ADD BOOK FORM (with word count lookup + total pages)
+            html+=`<div class="form-section"><h3 style="margin-bottom:20px;color:var(--text-primary);">Add a Book</h3><form id="bookForm" style="display:flex;flex-direction:column;gap:16px;"><div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" name="title" placeholder="Book title..." required></div><div class="form-group"><label class="form-label">Author</label><input type="text" class="form-input" name="author" placeholder="Author name..." required></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;"><div class="form-group"><label class="form-label">Genre</label><select class="form-input" name="genre"><option value="">— Select —</option>${Object.keys(GC).map(g=>`<option value="${g}">${g}</option>`).join('')}</select></div><div class="form-group"><label class="form-label">Status</label><select class="form-input" name="status"><option value="reading">Currently Reading</option><option value="want">Want to Read</option><option value="finished">Finished</option></select></div></div><div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:flex-end;"><div class="form-group" style="margin-bottom:0;"><label class="form-label">Total Words in Book</label><input type="number" class="form-input" name="bookTotalWords" id="bookTotalWordsInput" placeholder="e.g. 80000" min="1"></div><div class="form-group" style="margin-bottom:0;"><label class="form-label">Total Pages</label><input type="number" class="form-input" name="bookTotalPages" placeholder="e.g. 320" min="1"></div><button type="button" class="btn btn-secondary btn-sm" id="lookupWordCountBtn" style="margin-bottom:1px;" title="Auto-fill word count">🔍 Lookup</button></div><div style="font-size:11px;color:var(--text-tertiary);">💡 Type the title first, then tap Lookup to auto-fill word count for popular books</div><button type="submit" class="btn btn-primary">Add Book</button></form></div>`;
+            // LOG HISTORY
+            if(this.readingLogs.length>0){html+=`<div style="margin-top:24px;"><div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">📊 Reading Log History</div><div class="grid" style="grid-template-columns:1fr;">${this.readingLogs.slice().reverse().map(l=>{const bk=this.books.find(b=>b.id===l.bookId);const d=new Date(l.date);return`<div class="card" style="padding:12px 16px;"><div style="display:flex;justify-content:space-between;align-items:center;"><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-weight:700;font-size:13px;">${bk?bk.title:'📝 General'}</span><span style="font-size:13px;font-weight:800;color:#047857;">${l.words.toLocaleString()} words</span></div>${l.note?`<div style="font-size:11px;color:var(--text-tertiary);margin-top:3px;">📝 ${l.note}</div>`:''}</div><div style="text-align:right;flex-shrink:0;margin-left:12px;"><div style="font-size:12px;color:var(--text-tertiary);">📅 ${d.toLocaleDateString()}</div><div style="font-size:10px;color:var(--text-tertiary);">${d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div></div></div></div>`;}).join('')}</div></div>`;}
+            html+=`</div>`;return html;
+        },
+
+
+        renderArchive() {
+            let html=`<div class="grid" style="grid-template-columns:1fr;">`;
+            if(this.archived.length===0)html+=`<div class="empty-state"><div class="empty-state-icon">🗄️</div><div>No archived assignments. Use the 🗄️ button on assignments to archive them.</div></div>`;
+            else this.archived.slice().reverse().forEach(a=>{const co=CC[a.class]||'#047857';html+=`<div class="card" style="border-left:4px solid ${co};opacity:0.8;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div class="card-title">${a.title}</div><div style="display:flex;gap:8px;align-items:center;margin-top:4px;"><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(${hexToRgb(co)},0.18);color:${co};font-weight:700;">${a.class}</span><span style="font-size:12px;color:var(--text-tertiary);">${a.completed?'✅ Completed':'📋 Incomplete'}</span></div></div><div style="display:flex;gap:8px;"><button class="btn btn-secondary btn-sm" data-unarchive="${a.id}">↩ Restore</button><button class="btn-delete" data-delete data-type="archived" data-id="${a.id}">✕</button></div></div></div>`;});
+            html+=`</div>`;return html;
+        }
+    };
+
+    // Form submissions
+    document.addEventListener('submit',(e)=>{
+        e.preventDefault();const f=new FormData(e.target);
+        if(e.target.id==='taskForm'){app.tasks.push({id:Date.now(),title:f.get('title'),description:f.get('description'),priority:f.get('priority'),dueDate:f.get('dueDate'),completed:false});}
+        else if(e.target.id==='assignmentForm'){app.assignments.push({id:Date.now(),title:f.get('title'),description:f.get('description'),class:f.get('class'),priority:f.get('priority'),dueDate:f.get('dueDate'),completed:false});}
+        else if(e.target.id==='noteForm'){app.notes.push({id:Date.now(),title:f.get('title'),content:f.get('content'),noteClass:f.get('noteClass')||'',category:f.get('category')||'',date:new Date(),pinned:false});}
+        else if(e.target.id==='studyForm'){app.studySessions.push({id:Date.now(),subject:f.get('subject'),minutes:parseInt(f.get('minutes')),date:new Date()});app.saveData();app.render();alert('Great job studying! 🎓');return;}
+        else if(e.target.id==='deckForm'){app.flashcards.push({id:Date.now(),name:f.get('name'),fcClass:f.get('fcClass')||'',cards:[]});}
+        else if(e.target.id==='calEventForm'){app.calendarEvents.push({id:Date.now(),title:f.get('title'),date:f.get('date'),time:f.get('time')||'',note:f.get('note')||''});}
+        else if(e.target.id==='vocabForm'){app.vocab.push({id:Date.now(),word:f.get('word'),definition:f.get('definition'),example:f.get('example')||'',vocabClass:f.get('vocabClass')||''});}
+        else if(e.target.id==='gradeForm'){app.grades.push({id:Date.now(),name:f.get('name'),gradeClass:f.get('gradeClass'),score:parseInt(f.get('score')),date:new Date()});}
+        else if(e.target.id==='bookForm'){const btw=parseInt(f.get('bookTotalWords'))||0;const btp=parseInt(f.get('bookTotalPages'))||0;app.books.push({id:Date.now(),title:f.get('title'),author:f.get('author'),genre:f.get('genre')||'',status:f.get('status'),totalWords:0,bookTotalWords:btw,bookTotalPages:btp,currentPageNum:0,topFive:false,addedDate:new Date()});}
+        app.saveData();app.render();
+    });
+
+    // Lock screen
+    const lockScreen={
+        getPassword(){return localStorage.getItem('sandDollarPassword')||'ocean';},
+        setPassword(p){localStorage.setItem('sandDollarPassword',p);},
+        isSetupDone(){return localStorage.getItem('sandDollarPassword')!==null;},
+        unlock(){const input=document.getElementById('lockInput'),error=document.getElementById('lockError');if(input.value===this.getPassword()){document.getElementById('lockScreen').classList.add('unlocked');setTimeout(()=>{document.body.classList.remove('app-locked');document.getElementById('lockScreen').style.display='none';initStarfield();app.init();},600);}else{error.textContent='Wrong password — try again';error.classList.remove('shake');void error.offsetWidth;error.classList.add('shake');input.value='';input.focus();}},
+        showChangePassword(){const s=document.getElementById('lockSettings');s.innerHTML=`<div style="margin-top:16px;background:rgba(13,31,45,0.8);padding:20px;border-radius:12px;border:1px solid var(--border);width:280px;margin:16px auto 0;"><div style="font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:12px;">Change Password</div><input type="password" class="lock-input" id="oldPassInput" placeholder="Current" style="margin-bottom:10px;letter-spacing:2px;font-size:14px;padding:12px 16px;"><input type="password" class="lock-input" id="newPassInput" placeholder="New" style="margin-bottom:10px;letter-spacing:2px;font-size:14px;padding:12px 16px;"><input type="password" class="lock-input" id="confirmPassInput" placeholder="Confirm" style="margin-bottom:14px;letter-spacing:2px;font-size:14px;padding:12px 16px;"><div style="display:flex;gap:8px;justify-content:center;"><button class="lock-btn" id="savePassBtn" style="padding:10px 24px;font-size:13px;">Save</button><button class="lock-btn" id="cancelPassBtn" style="padding:10px 24px;font-size:13px;background:var(--surface-light);box-shadow:none;">Cancel</button></div><div id="passChangeError" style="color:#fca5a5;font-size:12px;margin-top:10px;"></div></div>`;
+        document.getElementById('savePassBtn').addEventListener('click',()=>{const o=document.getElementById('oldPassInput').value,n=document.getElementById('newPassInput').value,c=document.getElementById('confirmPassInput').value,err=document.getElementById('passChangeError');if(o!==this.getPassword()){err.textContent='Wrong current password';return;}if(!n){err.textContent='Cannot be empty';return;}if(n!==c){err.textContent="Don't match";return;}this.setPassword(n);s.innerHTML=`<div style="color:#10b981;margin-top:12px;">✅ Updated!</div>`;setTimeout(()=>{s.innerHTML=`<a id="changePassLink">Change password</a>`;this.attachLink();},2000);});
+        document.getElementById('cancelPassBtn').addEventListener('click',()=>{s.innerHTML=`<a id="changePassLink">Change password</a>`;this.attachLink();});},
+        attachLink(){const l=document.getElementById('changePassLink');if(l)l.addEventListener('click',()=>this.showChangePassword());},
+        init(){const s=document.getElementById('lockSettings');if(!this.isSetupDone()){s.innerHTML=`<div style="color:var(--text-secondary);font-size:12px;">Default password: <strong style="color:var(--text-primary);">ocean</strong></div>`;}else{s.innerHTML=`<a id="changePassLink">Change password</a>`;this.attachLink();}document.getElementById('lockInput').addEventListener('keydown',(e)=>{if(e.key==='Enter')this.unlock();});document.getElementById('lockBtn').addEventListener('click',()=>this.unlock());document.getElementById('lockInput').focus();}
+    };
+    lockScreen.init();
+    </script>
+</body>
+</html>
