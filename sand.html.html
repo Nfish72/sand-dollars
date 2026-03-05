@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sand Dollar - Ocean Organizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=OpenDyslexic&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #047857;
+            --primary-light: #059669;
+            --success: #10b981;
+            --warning: #d97706;
+            --danger: #991b1b;
+            --bg-dark: #020d1a;
+            --bg-light: #0a1628;
+            --surface: #0d1f2d;
+            --surface-light: #132a3d;
+            --border: #1a3a4d;
+            --text-primary: #b0c4d4;
+            --text-secondary: #7a8fa0;
+            --text-tertiary: #546073;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: 'OpenDyslexic', Arial, sans-serif;
+            background: linear-gradient(135deg, #020d1a 0%, #0a1628 50%, #061220 100%);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 24px 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+        }
+
+        .sand-dollar-icon {
+            width: 40px;
+            height: 40px;
+        }
+
+        .nav-section {
+            margin-bottom: 28px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
+            padding: 0 8px;
+        }
+
+        .nav-item {
+            padding: 12px 12px;
+            margin-bottom: 6px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            user-select: none;
+        }
+
+        .nav-item:hover {
+            background: var(--surface-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+            color: #f0f9ff;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(4, 120, 87, 0.4);
+        }
+
+        .sync-info {
+            margin-top: auto;
+            padding: 12px;
+            background: var(--surface-light);
+            border-radius: 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--surface);
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-family: 'OpenDyslexic', Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+            color: #f0f9ff;
+            box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
+            font-weight: 700;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(4, 120, 87, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--surface-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            padding: 0 32px;
+            gap: 0;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 16px 24px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-family: 'OpenDyslexic', Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -1px;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: #047857;
+            border-bottom-color: #047857;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: #047857;
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .card-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .card-footer {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-family: 'OpenDyslexic', Arial, sans-serif;
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--surface-light);
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #047857;
+            background: rgba(4, 120, 87, 0.05);
+            box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.15);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        textarea.form-input {
+            min-height: 100px;
+            resize: vertical;
+            font-family: 'OpenDyslexic', Arial, sans-serif;
+        }
+
+        .form-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px dashed var(--border);
+            margin-top: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.6;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            border-radius: 6px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface);
+            transition: all 0.2s ease;
+            margin-top: 2px;
+        }
+
+        .checkbox:hover {
+            border-color: #047857;
+        }
+
+        .checkbox.checked {
+            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+            border-color: #047857;
+            color: #f0f9ff;
+            font-weight: bold;
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            font-size: 16px;
+        }
+
+        .btn-delete:hover {
+            background: rgba(153, 27, 27, 0.2);
+            color: #fca5a5;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(4, 120, 87, 0.2);
+            color: #7cd6c4;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="logo">
+                <svg class="sand-dollar-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" fill="#c4a747" stroke="#a68f3d" stroke-width="1.5"/>
+                    <circle cx="50" cy="30" r="6" fill="#8b7a2f" opacity="0.8"/>
+                    <circle cx="65" cy="42" r="6" fill="#8b7a2f" opacity="0.8"/>
+                    <circle cx="60" cy="60" r="6" fill="#8b7a2f" opacity="0.8"/>
+                    <circle cx="40" cy="60" r="6" fill="#8b7a2f" opacity="0.8"/>
+                    <circle cx="35" cy="42" r="6" fill="#8b7a2f" opacity="0.8"/>
+                    <circle cx="50" cy="50" r="3" fill="#6b5a1f"/>
+                    <g stroke="#a68f3d" stroke-width="0.8" opacity="0.5">
+                        <line x1="50" y1="50" x2="50" y2="8"/>
+                        <line x1="50" y1="50" x2="77" y2="35"/>
+                        <line x1="50" y1="50" x2="80" y2="60"/>
+                        <line x1="50" y1="50" x2="65" y2="85"/>
+                        <line x1="50" y1="50" x2="35" y2="92"/>
+                    </g>
+                </svg>
+                <span>Sand Dollar</span>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-label">View</div>
+                <div class="nav-item active" data-page="dashboard">🏠 Dashboard</div>
+                <div class="nav-item" data-page="calendar">📅 Calendar</div>
+                <div class="nav-item" data-page="tasks">🐙 Tasks</div>
+                <div class="nav-item" data-page="assignments">🪸 Assignments</div>
+                <div class="nav-item" data-page="notes">📝 Notes</div>
+                <div class="nav-item" data-page="study">⏱️ Study</div>
+                <div class="nav-item" data-page="flashcards">🎴 Flashcards</div>
+                <div class="nav-item" data-page="vocab">📚 Vocab</div>
+            </div>
+
+            <div class="sync-info">
+                ✅ Data saves automatically
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main">
+            <div class="header">
+                <div class="header-title" id="pageTitle">Dashboard</div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="exportBtn">💾 Export</button>
+                </div>
+            </div>
+
+            <div class="tabs" id="tabs"></div>
+
+            <div class="content" id="content">
+                <!-- Content loads here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple, straightforward app
+        const app = {
+            currentPage: 'dashboard',
+            tasks: [],
+            assignments: [],
+            notes: [],
+            studySessions: [],
+            flashcards: [],
+            vocab: [],
+            calendarEvents: [],
+
+            init() {
+                this.loadData();
+                this.setupSidebar();
+                this.setupExport();
+                this.render();
+            },
+
+            loadData() {
+                const saved = localStorage.getItem('sandDollarData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    this.tasks = data.tasks || [];
+                    this.assignments = data.assignments || [];
+                    this.notes = data.notes || [];
+                    this.studySessions = data.studySessions || [];
+                    this.flashcards = data.flashcards || [];
+                    this.vocab = data.vocab || [];
+                    this.calendarEvents = data.calendarEvents || [];
+                }
+            },
+
+            saveData() {
+                const data = {
+                    tasks: this.tasks,
+                    assignments: this.assignments,
+                    notes: this.notes,
+                    studySessions: this.studySessions,
+                    flashcards: this.flashcards,
+                    vocab: this.vocab,
+                    calendarEvents: this.calendarEvents
+                };
+                localStorage.setItem('sandDollarData', JSON.stringify(data));
+            },
+
+            setupSidebar() {
+                const navItems = document.querySelectorAll('[data-page]');
+                navItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        navItems.forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                        this.currentPage = item.dataset.page;
+                        this.render();
+                    });
+                });
+            },
+
+            setupExport() {
+                document.getElementById('exportBtn').addEventListener('click', () => {
+                    const data = {
+                        tasks: this.tasks,
+                        notes: this.notes,
+                        studySessions: this.studySessions,
+                        flashcards: this.flashcards,
+                        vocab: this.vocab,
+                        exportDate: new Date().toISOString()
+                    };
+                    const json = JSON.stringify(data, null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `sand-dollar-${new Date().toISOString().split('T')[0]}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            },
+
+            render() {
+                const contentDiv = document.getElementById('content');
+                const titleDiv = document.getElementById('pageTitle');
+
+                let html = '';
+                let title = '';
+
+                if (this.currentPage === 'dashboard') {
+                    html = this.renderDashboard();
+                    title = 'Dashboard';
+                } else if (this.currentPage === 'calendar') {
+                    html = this.renderCalendar();
+                    title = 'Calendar';
+                } else if (this.currentPage === 'tasks') {
+                    html = this.renderTasks();
+                    title = 'Tasks';
+                } else if (this.currentPage === 'assignments') {
+                    html = this.renderAssignments();
+                    title = 'Assignments';
+                } else if (this.currentPage === 'notes') {
+                    html = this.renderNotes();
+                    title = 'Notes & Reminders';
+                } else if (this.currentPage === 'study') {
+                    html = this.renderStudy();
+                    title = 'Study Time';
+                } else if (this.currentPage === 'flashcards') {
+                    html = this.renderFlashcards();
+                    title = 'Flashcards';
+                } else if (this.currentPage === 'vocab') {
+                    html = this.renderVocab();
+                    title = 'Vocabulary';
+                }
+
+                titleDiv.textContent = title;
+                contentDiv.innerHTML = html;
+                this.attachDynamicListeners();
+            },
+
+            attachDynamicListeners() {
+                // Attach flashcard class tabs
+                document.querySelectorAll('[data-fctab]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.activeFlashcardTab = btn.dataset.fctab;
+                        this.render();
+                    });
+                });
+
+                // Attach vocab class tabs
+                document.querySelectorAll('[data-vocabtab]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.activeVocabTab = btn.dataset.vocabtab;
+                        this.render();
+                    });
+                });
+
+                // Attach class tabs for assignments
+                document.querySelectorAll('[data-classtab]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.activeClassTab = btn.dataset.classtab;
+                        this.render();
+                    });
+                });
+
+                // Attach delete buttons
+                document.querySelectorAll('[data-delete]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const type = btn.dataset.type;
+                        const id = parseInt(btn.dataset.id);
+                        this.deleteItem(type, id);
+                    });
+                });
+
+                // Attach checkboxes
+                document.querySelectorAll('[data-toggle]').forEach(checkbox => {
+                    checkbox.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const type = checkbox.dataset.type;
+                        const id = parseInt(checkbox.dataset.id);
+                        this.toggleItem(type, id);
+                    });
+                });
+            },
+
+            renderCalendar() {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = today.getMonth();
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                const startingDayOfWeek = firstDay.getDay();
+
+                const classColors = {
+                    'Environmental': '#0d9488', 'Space': '#0369a1', 'Math': '#2563eb',
+                    'Health': '#06b6d4', 'Film': '#0891b2', 'Anatomy': '#14b8a6'
+                };
+
+                // Map assignments by day
+                const assignmentsByDay = {};
+                this.assignments.forEach(a => {
+                    if (!a.dueDate) return;
+                    const d = new Date(a.dueDate + 'T12:00:00');
+                    if (d.getFullYear() === year && d.getMonth() === month) {
+                        const day = d.getDate();
+                        if (!assignmentsByDay[day]) assignmentsByDay[day] = [];
+                        assignmentsByDay[day].push(a);
+                    }
+                });
+
+                // Map calendarEvents by day
+                const eventsByDay = {};
+                this.calendarEvents.forEach(e => {
+                    if (!e.date) return;
+                    const d = new Date(e.date + 'T12:00:00');
+                    if (d.getFullYear() === year && d.getMonth() === month) {
+                        const day = d.getDate();
+                        if (!eventsByDay[day]) eventsByDay[day] = [];
+                        eventsByDay[day].push(e);
+                    }
+                });
+
+                let html = `
+                    <div style="display: grid; grid-template-columns: 1fr 320px; gap: 28px; align-items: start;">
+                    <div>
+                        <h3 style="margin-bottom: 20px; color: var(--text-primary);">
+                            ${firstDay.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                        </h3>
+                        <div class="grid" style="grid-template-columns: repeat(7, 1fr); gap: 8px;">
+                `;
+
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                dayNames.forEach(day => {
+                    html += `<div style="text-align: center; font-weight: 600; color: var(--text-secondary); padding: 8px 0; font-size: 12px;">${day}</div>`;
+                });
+
+                for (let i = 0; i < startingDayOfWeek; i++) {
+                    html += `<div></div>`;
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const isToday = day === today.getDate();
+                    const bgStyle = isToday
+                        ? 'background: linear-gradient(135deg, #047857 0%, #059669 100%); color: #f0f9ff; font-weight: bold;'
+                        : 'background: var(--surface-light);';
+                    const dayAssignments = assignmentsByDay[day] || [];
+                    const dayEvents = eventsByDay[day] || [];
+
+                    let dots = '';
+                    if (dayAssignments.length > 0 || dayEvents.length > 0) {
+                        dots = `<div style="display: flex; justify-content: center; gap: 3px; flex-wrap: wrap; margin-top: 5px;">`;
+                        dayAssignments.slice(0, 3).forEach(a => {
+                            const color = classColors[a.class] || '#047857';
+                            dots += `<div title="${a.class}: ${a.title}" style="width: 7px; height: 7px; border-radius: 50%; background: ${color}; flex-shrink: 0;"></div>`;
+                        });
+                        dayEvents.forEach(e => {
+                            dots += `<div title="📅 ${e.title}" style="width: 7px; height: 7px; border-radius: 50%; background: #f97316; flex-shrink: 0;"></div>`;
+                        });
+                        dots += `</div>`;
+                    }
+
+                    html += `
+                        <div style="padding: 8px 4px; text-align: center; border: 1px solid var(--border); border-radius: 8px; ${bgStyle} min-height: 52px; font-size: 13px;">
+                            <div>${day}</div>
+                            ${dots}
+                        </div>
+                    `;
+                }
+
+                html += `</div>`;
+
+                // Legend
+                html += `
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; padding: 10px 12px; background: var(--surface); border-radius: 10px; border: 1px solid var(--border);">
+                        ${Object.entries(classColors).map(([cls, color]) => `
+                            <div style="display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary);">
+                                <div style="width: 8px; height: 8px; border-radius: 50%; background: ${color};"></div>${cls}
+                            </div>`).join('')}
+                        <div style="display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary);">
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: #f97316;"></div>Event
+                        </div>
+                    </div>
+                `;
+
+                html += `</div>`;
+
+                // Add Event Form + Event list
+                html += `
+                    <div>
+                        <div class="form-section" style="margin-top: 0;">
+                            <h3 style="margin-bottom: 16px; color: var(--text-primary);">➕ Add Event</h3>
+                            <form id="calEventForm" style="display: flex; flex-direction: column; gap: 12px;">
+                                <div class="form-group">
+                                    <label class="form-label">Event Title</label>
+                                    <input type="text" class="form-input" name="title" placeholder="e.g. Doctor appointment" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Date</label>
+                                    <input type="date" class="form-input" name="date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Time (optional)</label>
+                                    <input type="time" class="form-input" name="time">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Note (optional)</label>
+                                    <input type="text" class="form-input" name="note" placeholder="Any extra details...">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Add to Calendar</button>
+                            </form>
+                        </div>
+
+                        ${this.calendarEvents.length > 0 ? `
+                            <div style="margin-top: 20px;">
+                                <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.06em;">Upcoming Events</div>
+                                ${this.calendarEvents
+                                    .slice().sort((a,b) => new Date(a.date) - new Date(b.date))
+                                    .map(e => `
+                                        <div class="card" style="margin-bottom: 10px; border-left: 4px solid #f97316; padding: 12px 14px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                                <div>
+                                                    <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">${e.title}</div>
+                                                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px;">
+                                                        📅 ${new Date(e.date + 'T12:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric'})}
+                                                        ${e.time ? ` &nbsp;🕐 ${e.time}` : ''}
+                                                    </div>
+                                                    ${e.note ? `<div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">${e.note}</div>` : ''}
+                                                </div>
+                                                <button class="btn-delete" data-delete data-type="calendarEvents" data-id="${e.id}">✕</button>
+                                            </div>
+                                        </div>`).join('')}
+                            </div>` : ''}
+                    </div>
+                    </div>
+                `;
+
+                return html;
+            },
+
+            renderTasks() {
+                let html = `<div class="grid">`;
+
+                if (this.tasks.length === 0) {
+                    html += `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-state-icon">🌊</div>
+                            <div>No tasks yet. Create your first one!</div>
+                        </div>
+                    `;
+                } else {
+                    this.tasks.forEach(task => {
+                        const checked = task.completed ? 'checked' : '';
+                        html += `
+                            <div class="card">
+                                <div class="checkbox-wrapper">
+                                    <div class="checkbox ${checked}" data-toggle data-type="tasks" data-id="${task.id}"></div>
+                                    <div style="flex: 1;">
+                                        <div class="card-title" style="${task.completed ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${task.title}</div>
+                                        <div class="card-text">${task.description || ''}</div>
+                                        <div class="card-footer">
+                                            <span class="tag">${task.priority}</span>
+                                            <span>📅 ${new Date(task.dueDate).toLocaleDateString()}</span>
+                                            <button class="btn-delete" data-delete data-type="tasks" data-id="${task.id}">✕</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `</div>`;
+                html += this.getTaskForm();
+                return html;
+            },
+
+            activeClassTab: 'all',
+            activeVocabTab: 'all',
+            activeFlashcardTab: 'all',
+
+            renderAssignments() {
+                const classes = ['all', 'Environmental', 'Space', 'Math', 'Health', 'Film', 'Anatomy'];
+                const classColors = {
+                    'Environmental': '#0d9488',
+                    'Space': '#0369a1',
+                    'Math': '#2563eb',
+                    'Health': '#06b6d4',
+                    'Film': '#0891b2',
+                    'Anatomy': '#14b8a6'
+                };
+
+                // Mini class tabs
+                let html = `
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+                        ${classes.map(cls => {
+                            const color = cls === 'all' ? '#047857' : classColors[cls];
+                            const isActive = this.activeClassTab === cls;
+                            return `<button 
+                                data-classtab="${cls}"
+                                style="padding: 8px 16px; border-radius: 20px; border: 2px solid ${color}; cursor: pointer; font-family: 'OpenDyslexic', Arial, sans-serif; font-size: 12px; font-weight: 700; transition: all 0.2s ease;
+                                background: ${isActive ? color : 'transparent'}; color: ${isActive ? '#fff' : color}; letter-spacing: 0.03em;">
+                                ${cls === 'all' ? '🌊 All' : cls}
+                            </button>`;
+                        }).join('')}
+                    </div>
+                `;
+
+                const filtered = this.activeClassTab === 'all'
+                    ? this.assignments
+                    : this.assignments.filter(a => a.class === this.activeClassTab);
+
+                html += `<div class="grid">`;
+
+                if (filtered.length === 0) {
+                    html += `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-state-icon">📚</div>
+                            <div>No assignments yet. Add your first one!</div>
+                        </div>
+                    `;
+                } else {
+                    filtered.forEach(assignment => {
+                        const checked = assignment.completed ? 'checked' : '';
+                        const classColor = classColors[assignment.class] || '#047857';
+                        
+                        html += `
+                            <div class="card" style="border-left: 4px solid ${classColor};">
+                                <div class="checkbox-wrapper">
+                                    <div class="checkbox ${checked}" data-toggle data-type="assignments" data-id="${assignment.id}"></div>
+                                    <div style="flex: 1;">
+                                        <div class="card-title" style="${assignment.completed ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${assignment.title}</div>
+                                        <div class="card-text">${assignment.description || ''}</div>
+                                        <div class="card-footer">
+                                            <span class="tag" style="background: rgba(${this.hexToRgb(classColor)}, 0.2); color: ${classColor};">${assignment.class}</span>
+                                            <span class="tag">${assignment.priority}</span>
+                                            <span>📅 ${new Date(assignment.dueDate).toLocaleDateString()}</span>
+                                            <button class="btn-delete" data-delete data-type="assignments" data-id="${assignment.id}">✕</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `</div>`;
+                html += this.getAssignmentForm();
+                return html;
+            },
+
+            getTaskForm() {
+                return `
+                    <div class="form-section">
+                        <h3 style="margin-bottom: 20px; color: var(--text-primary);">Add New Task</h3>
+                        <form id="taskForm" style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">Task Title</label>
+                                <input type="text" class="form-input" name="title" placeholder="What do you need to do?" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-input" name="description" placeholder="Add details..."></textarea>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div class="form-group">
+                                    <label class="form-label">Priority</label>
+                                    <select class="form-input" name="priority">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Due Date</label>
+                                    <input type="date" class="form-input" name="dueDate" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Task</button>
+                        </form>
+                    </div>
+                `;
+            },
+
+            getAssignmentForm() {
+                return `
+                    <div class="form-section">
+                        <h3 style="margin-bottom: 20px; color: var(--text-primary);">Add Assignment</h3>
+                        <form id="assignmentForm" style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">Assignment Title</label>
+                                <input type="text" class="form-input" name="title" placeholder="Assignment name..." required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-input" name="description" placeholder="Details about the assignment..."></textarea>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div class="form-group">
+                                    <label class="form-label">Class</label>
+                                    <select class="form-input" name="class" required>
+                                        <option value="">Select a class</option>
+                                        <option value="Environmental">Environmental</option>
+                                        <option value="Space">Space</option>
+                                        <option value="Math">Math</option>
+                                        <option value="Health">Health</option>
+                                        <option value="Film">Film</option>
+                                        <option value="Anatomy">Anatomy</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Priority</label>
+                                    <select class="form-input" name="priority">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Due Date</label>
+                                <input type="date" class="form-input" name="dueDate" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Assignment</button>
+                        </form>
+                    </div>
+                `;
+            },
+
+            getNoteColor(note) {
+                // Class colors (blues/teals)
+                const classColors = {
+                    'Environmental': '#0d9488',
+                    'Space': '#0369a1',
+                    'Math': '#2563eb',
+                    'Health': '#06b6d4',
+                    'Film': '#0891b2',
+                    'Anatomy': '#14b8a6'
+                };
+                // Category colors
+                const catColors = {
+                    'important': '#f97316',
+                    'noah': '#fb923c',
+                    'extracurricular': '#fdba74',
+                    'grades': '#c2410c'
+                };
+                if (note.category && catColors[note.category]) return catColors[note.category];
+                if (note.noteClass && classColors[note.noteClass]) return classColors[note.noteClass];
+                return '#7a8fa0';
+            },
+
+            getNoteLabel(note) {
+                const catLabels = {
+                    'important': '⚠️ Important',
+                    'noah': "🌊 Noah Don't Forget",
+                    'extracurricular': '🎭 Extracurricular',
+                    'grades': '📊 Grades'
+                };
+                if (note.category && catLabels[note.category]) return catLabels[note.category];
+                if (note.noteClass) return `📖 ${note.noteClass}`;
+                return '📝 Note';
+            },
+
+            renderNotes() {
+                let html = `<div class="grid">`;
+
+                if (this.notes.length === 0) {
+                    html += `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-state-icon">📝</div>
+                            <div>No notes yet. Write something!</div>
+                        </div>
+                    `;
+                } else {
+                    this.notes.forEach(note => {
+                        const color = this.getNoteColor(note);
+                        const label = this.getNoteLabel(note);
+                        html += `
+                            <div class="card" style="border-left: 4px solid ${color};">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                                    <div class="card-title" style="margin-bottom: 0;">${note.title}</div>
+                                    <span style="display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; background: rgba(${this.hexToRgb(color)}, 0.18); color: ${color}; white-space: nowrap; margin-left: 8px;">${label}</span>
+                                </div>
+                                <div class="card-text">${note.content}</div>
+                                <div class="card-footer">
+                                    <span>📅 ${new Date(note.date).toLocaleDateString()}</span>
+                                    <button class="btn-delete" data-delete data-type="notes" data-id="${note.id}">✕</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `</div>`;
+                html += this.getNoteForm();
+                return html;
+            },
+
+            getNoteForm() {
+                return `
+                    <div class="form-section">
+                        <h3 style="margin-bottom: 20px; color: var(--text-primary);">Write a Note</h3>
+                        <form id="noteForm" style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">Note Title</label>
+                                <input type="text" class="form-input" name="title" placeholder="Title..." required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Note Content</label>
+                                <textarea class="form-input" name="content" placeholder="Write your thoughts..." required></textarea>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div class="form-group">
+                                    <label class="form-label">Class (optional)</label>
+                                    <select class="form-input" name="noteClass">
+                                        <option value="">— No class —</option>
+                                        <option value="Environmental">Environmental</option>
+                                        <option value="Space">Space</option>
+                                        <option value="Math">Math</option>
+                                        <option value="Health">Health</option>
+                                        <option value="Film">Film</option>
+                                        <option value="Anatomy">Anatomy</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Category (optional)</label>
+                                    <select class="form-input" name="category">
+                                        <option value="">— No category —</option>
+                                        <option value="important">⚠️ Important</option>
+                                        <option value="noah">🌊 Noah Don't Forget</option>
+                                        <option value="extracurricular">🎭 Extracurricular</option>
+                                        <option value="grades">📊 Grades</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary); align-items: center;">
+                                <span style="font-weight: 700;">Color guide:</span>
+                                <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#f97316;display:inline-block;"></span>Important</span>
+                                <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#fb923c;display:inline-block;"></span>Noah Don't Forget</span>
+                                <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#fdba74;display:inline-block;"></span>Extracurricular</span>
+                                <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#c2410c;display:inline-block;"></span>Grades</span>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Note</button>
+                        </form>
+                    </div>
+                `;
+            },
+
+            renderStudy() {
+                let html = `
+                    <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
+                        <div class="form-section">
+                            <h3 style="margin-bottom: 16px; color: var(--text-primary);">Start Session</h3>
+                            <form id="studyForm" style="display: flex; flex-direction: column; gap: 12px;">
+                                <div class="form-group">
+                                    <label class="form-label">Subject</label>
+                                    <select class="form-input" name="subject">
+                                        <option value="Math">Math</option>
+                                        <option value="Anatomy">Anatomy</option>
+                                        <option value="Environmental">Environmental</option>
+                                        <option value="Space">Space</option>
+                                        <option value="Health">Health</option>
+                                        <option value="Film">Film</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Minutes</label>
+                                    <input type="number" class="form-input" name="minutes" value="30" min="1" max="480" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Log Session</button>
+                            </form>
+                        </div>
+                        <div>
+                            <h3 style="margin-bottom: 16px; color: var(--text-primary);">Sessions</h3>
+                            <div class="grid" style="grid-template-columns: 1fr;">
+                `;
+
+                if (this.studySessions.length === 0) {
+                    html += `<div style="color: var(--text-secondary); text-align: center; padding: 20px;">No sessions logged yet</div>`;
+                } else {
+                    const totalMinutes = this.studySessions.reduce((sum, s) => sum + s.minutes, 0);
+                    html += `
+                        <div class="card" style="background: linear-gradient(135deg, var(--surface) 0%, var(--surface-light) 100%);">
+                            <div style="font-size: 24px; font-weight: 700; color: #047857; margin-bottom: 8px;">${totalMinutes} min</div>
+                            <div style="color: var(--text-secondary);">Total study time</div>
+                        </div>
+                    `;
+                    this.studySessions.slice().reverse().forEach(session => {
+                        html += `
+                            <div class="card">
+                                <div class="card-title">${session.subject}</div>
+                                <div class="card-text">${session.minutes} minutes</div>
+                                <div class="card-footer">
+                                    <span>📅 ${new Date(session.date).toLocaleDateString()}</span>
+                                    <button class="btn-delete" data-delete data-type="studySessions" data-id="${session.id}">✕</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `</div></div></div>`;
+                return html;
+            },
+
+            renderFlashcards() {
+                const fcClasses = ['all', 'Environmental', 'Math', 'Film', 'Anatomy'];
+                const classColors = {
+                    'Environmental': '#0d9488', 'Math': '#2563eb',
+                    'Film': '#0891b2', 'Anatomy': '#14b8a6'
+                };
+
+                // Mini tabs
+                let html = `
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+                        ${fcClasses.map(cls => {
+                            const color = cls === 'all' ? '#047857' : classColors[cls];
+                            const isActive = this.activeFlashcardTab === cls;
+                            return `<button data-fctab="${cls}"
+                                style="padding: 8px 16px; border-radius: 20px; border: 2px solid ${color}; cursor: pointer; font-family: 'OpenDyslexic', Arial, sans-serif; font-size: 12px; font-weight: 700; transition: all 0.2s ease;
+                                background: ${isActive ? color : 'transparent'}; color: ${isActive ? '#fff' : color};">
+                                ${cls === 'all' ? '🌊 All' : cls}
+                            </button>`;
+                        }).join('')}
+                    </div>
+                `;
+
+                const filtered = this.activeFlashcardTab === 'all'
+                    ? this.flashcards
+                    : this.flashcards.filter(d => d.fcClass === this.activeFlashcardTab);
+
+                html += `<div class="grid">`;
+
+                if (filtered.length === 0) {
+                    html += `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-state-icon">🎴</div>
+                            <div>No flashcard decks yet</div>
+                        </div>
+                    `;
+                } else {
+                    filtered.forEach(deck => {
+                        const color = classColors[deck.fcClass] || '#047857';
+                        html += `
+                            <div class="card" style="border-left: 4px solid ${color};">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div class="card-title" style="margin-bottom: 4px;">${deck.name}</div>
+                                    ${deck.fcClass ? `<span style="font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 700; background: rgba(${this.hexToRgb(color)},0.18); color: ${color};">${deck.fcClass}</span>` : ''}
+                                </div>
+                                <div class="card-text">${deck.cards.length} cards</div>
+                                <div class="card-footer">
+                                    <button class="btn-delete" data-delete data-type="flashcards" data-id="${deck.id}">✕</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `</div>`;
+                html += `
+                    <div class="form-section">
+                        <h3 style="margin-bottom: 20px; color: var(--text-primary);">Create Deck</h3>
+                        <form id="deckForm" style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">Deck Name</label>
+                                <input type="text" class="form-input" name="name" placeholder="e.g., Chapter 4 Terms" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Class</label>
+                                <select class="form-input" name="fcClass">
+                                    <option value="">— No class —</option>
+                                    <option value="Environmental">Environmental</option>
+                                    <option value="Math">Math</option>
+                                    <option value="Film">Film</option>
+                                    <option value="Anatomy">Anatomy</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Create Deck</button>
+                        </form>
+                    </div>
+                `;
+                return html;
+            },
+
+            renderVocab() {
+                const vocabClasses = ['all', 'Environmental', 'Math', 'Film', 'Anatomy'];
+                const classColors = {
+                    'Environmental': '#0d9488',
+                    'Math': '#2563eb',
+                    'Film': '#0891b2',
+                    'Anatomy': '#14b8a6'
+                };
+
+                // Mini class tabs
+                let html = `
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+                        ${vocabClasses.map(cls => {
+                            const color = cls === 'all' ? '#047857' : classColors[cls];
+                            const isActive = this.activeVocabTab === cls;
+                            return `<button
+                                data-vocabtab="${cls}"
+                                style="padding: 8px 16px; border-radius: 20px; border: 2px solid ${color}; cursor: pointer; font-family: 'OpenDyslexic', Arial, sans-serif; font-size: 12px; font-weight: 700; transition: all 0.2s ease;
+                                background: ${isActive ? color : 'transparent'}; color: ${isActive ? '#fff' : color}; letter-spacing: 0.03em;">
+                                ${cls === 'all' ? '🌊 All' : cls}
+                            </button>`;
+                        }).join('')}
+                    </div>
+                `;
+
+                const filtered = this.activeVocabTab === 'all'
+                    ? this.vocab
+                    : this.vocab.filter(v => v.vocabClass === this.activeVocabTab);
+
+                html += `<div class="grid">`;
+
+                if (filtered.length === 0) {
+                    html += `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-state-icon">📚</div>
+                            <div>No vocabulary yet</div>
+                        </div>
+                    `;
+                } else {
+                    filtered.forEach(term => {
+                        const color = classColors[term.vocabClass] || '#047857';
+                        html += `
+                            <div class="card" style="border-left: 4px solid ${color};">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                                    <div class="card-title" style="color: ${color}; margin-bottom: 0;">${term.word}</div>
+                                    ${term.vocabClass ? `<span style="display:inline-block;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:700;background:rgba(${this.hexToRgb(color)},0.18);color:${color};margin-left:8px;">${term.vocabClass}</span>` : ''}
+                                </div>
+                                <div class="card-text">${term.definition}</div>
+                                ${term.example ? `<div class="card-text" style="font-style: italic; font-size: 12px;">Example: ${term.example}</div>` : ''}
+                                <div class="card-footer">
+                                    <button class="btn-delete" data-delete data-type="vocab" data-id="${term.id}">✕</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `</div>`;
+                html += `
+                    <div class="form-section">
+                        <h3 style="margin-bottom: 20px; color: var(--text-primary);">Add Word</h3>
+                        <form id="vocabForm" style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">Word</label>
+                                <input type="text" class="form-input" name="word" placeholder="Word..." required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Definition</label>
+                                <textarea class="form-input" name="definition" placeholder="Definition..." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Example (optional)</label>
+                                <input type="text" class="form-input" name="example" placeholder="Example sentence...">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Class</label>
+                                <select class="form-input" name="vocabClass">
+                                    <option value="">— No class —</option>
+                                    <option value="Environmental">Environmental</option>
+                                    <option value="Math">Math</option>
+                                    <option value="Film">Film</option>
+                                    <option value="Anatomy">Anatomy</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Word</button>
+                        </form>
+                    </div>
+                `;
+                return html;
+            },
+
+            deleteItem(type, id) {
+                if (confirm('Delete this item?')) {
+                    this[type] = this[type].filter(item => item.id !== id);
+                    this.saveData();
+                    this.render();
+                }
+            },
+
+            toggleItem(type, id) {
+                const item = this[type].find(i => i.id === id);
+                if (item && item.completed !== undefined) {
+                    item.completed = !item.completed;
+                    this.saveData();
+                    this.render();
+                }
+            },
+
+            renderDashboard() {
+                const today = new Date();
+                const todayStr = today.toDateString();
+                const classColors = {
+                    'Environmental': '#0d9488', 'Space': '#0369a1', 'Math': '#2563eb',
+                    'Health': '#06b6d4', 'Film': '#0891b2', 'Anatomy': '#14b8a6'
+                };
+
+                // Upcoming assignments (next 7 days, not completed)
+                const upcoming = this.assignments.filter(a => {
+                    if (a.completed || !a.dueDate) return false;
+                    const due = new Date(a.dueDate + 'T12:00:00');
+                    const diff = (due - today) / (1000 * 60 * 60 * 24);
+                    return diff >= -1 && diff <= 7;
+                }).sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+                // Today's calendar events
+                const todayEvents = this.calendarEvents.filter(e => {
+                    if (!e.date) return false;
+                    return new Date(e.date + 'T12:00:00').toDateString() === todayStr;
+                }).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+                // Stats
+                const totalAssignments = this.assignments.length;
+                const doneAssignments = this.assignments.filter(a => a.completed).length;
+                const totalTasks = this.tasks.length;
+                const doneTasks = this.tasks.filter(t => t.completed).length;
+                const studyTotal = this.studySessions.reduce((s, x) => s + x.minutes, 0);
+                const noahNotes = this.notes.filter(n => n.category === 'noah').length;
+
+                const greetingHour = today.getHours();
+                const greeting = greetingHour < 12 ? 'Good morning' : greetingHour < 17 ? 'Good afternoon' : 'Good evening';
+
+                return `
+                    <div style="max-width: 900px;">
+                        <!-- Greeting -->
+                        <div style="margin-bottom: 28px;">
+                            <div style="font-size: 26px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
+                                ${greeting}, Noah 🌊
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 14px;">
+                                ${today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                            </div>
+                        </div>
+
+                        <!-- Stat Cards -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px;">
+                            <div class="card" style="text-align: center; border-top: 3px solid #2563eb;">
+                                <div style="font-size: 32px; font-weight: 800; color: #2563eb;">${totalAssignments - doneAssignments}</div>
+                                <div style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Assignments Left</div>
+                                <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">${doneAssignments} of ${totalAssignments} done</div>
+                            </div>
+                            <div class="card" style="text-align: center; border-top: 3px solid #0d9488;">
+                                <div style="font-size: 32px; font-weight: 800; color: #0d9488;">${totalTasks - doneTasks}</div>
+                                <div style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Tasks Pending</div>
+                                <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">${doneTasks} of ${totalTasks} done</div>
+                            </div>
+                            <div class="card" style="text-align: center; border-top: 3px solid #047857;">
+                                <div style="font-size: 32px; font-weight: 800; color: #047857;">${studyTotal}</div>
+                                <div style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Study Minutes</div>
+                                <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">${this.studySessions.length} sessions logged</div>
+                            </div>
+                            <div class="card" style="text-align: center; border-top: 3px solid #fb923c;">
+                                <div style="font-size: 32px; font-weight: 800; color: #fb923c;">${noahNotes}</div>
+                                <div style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Don't Forgets</div>
+                                <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">${this.notes.length} notes total</div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                            <!-- Upcoming Assignments -->
+                            <div>
+                                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                                    🪸 Due Soon
+                                </div>
+                                ${upcoming.length === 0
+                                    ? `<div class="card" style="text-align:center; color: var(--text-secondary); font-size: 13px;">Nothing due in the next 7 days 🎉</div>`
+                                    : upcoming.map(a => {
+                                        const color = classColors[a.class] || '#047857';
+                                        const due = new Date(a.dueDate + 'T12:00:00');
+                                        const diff = Math.ceil((due - today) / (1000*60*60*24));
+                                        const dueLabel = diff <= 0 ? '⚠️ Today!' : diff === 1 ? 'Tomorrow' : `In ${diff} days`;
+                                        return `<div class="card" style="margin-bottom: 10px; border-left: 4px solid ${color}; padding: 14px 16px;">
+                                            <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">${a.title}</div>
+                                            <div style="display: flex; gap: 8px; margin-top: 6px; align-items: center; flex-wrap: wrap;">
+                                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(${this.hexToRgb(color)},0.18); color: ${color}; font-weight: 700;">${a.class}</span>
+                                                <span style="font-size: 12px; color: var(--text-secondary);">${dueLabel}</span>
+                                            </div>
+                                        </div>`;
+                                    }).join('')
+                                }
+                            </div>
+
+                            <!-- Today's Schedule -->
+                            <div>
+                                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                                    📅 Today's Schedule
+                                </div>
+                                ${todayEvents.length === 0
+                                    ? `<div class="card" style="text-align:center; color: var(--text-secondary); font-size: 13px;">No events today — add some on the Calendar page!</div>`
+                                    : todayEvents.map(e => `
+                                        <div class="card" style="margin-bottom: 10px; border-left: 4px solid #0369a1; padding: 14px 16px;">
+                                            <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">${e.title}</div>
+                                            ${e.time ? `<div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">🕐 ${e.time}</div>` : ''}
+                                            ${e.note ? `<div style="font-size: 12px; color: var(--text-tertiary); margin-top: 2px;">${e.note}</div>` : ''}
+                                        </div>`).join('')
+                                }
+
+                                <!-- Noah Don't Forget reminders -->
+                                ${this.notes.filter(n => n.category === 'noah').length > 0 ? `
+                                    <div style="font-size: 15px; font-weight: 700; color: #fb923c; margin: 20px 0 14px; display: flex; align-items: center; gap: 8px;">
+                                        🌊 Noah, Don't Forget!
+                                    </div>
+                                    ${this.notes.filter(n => n.category === 'noah').slice(0, 3).map(n => `
+                                        <div class="card" style="margin-bottom: 10px; border-left: 4px solid #fb923c; padding: 14px 16px;">
+                                            <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">${n.title}</div>
+                                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">${n.content}</div>
+                                        </div>`).join('')}
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            hexToRgb(hex) {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '0, 0, 0';
+            }
+        };
+
+        // Handle form submissions
+        document.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            if (e.target.id === 'taskForm') {
+                const form = new FormData(e.target);
+                app.tasks.push({
+                    id: Date.now(),
+                    title: form.get('title'),
+                    description: form.get('description'),
+                    priority: form.get('priority'),
+                    dueDate: form.get('dueDate'),
+                    completed: false
+                });
+                app.saveData();
+                app.render();
+            }
+            
+            if (e.target.id === 'assignmentForm') {
+                const form = new FormData(e.target);
+                app.assignments.push({
+                    id: Date.now(),
+                    title: form.get('title'),
+                    description: form.get('description'),
+                    class: form.get('class'),
+                    priority: form.get('priority'),
+                    dueDate: form.get('dueDate'),
+                    completed: false
+                });
+                app.saveData();
+                app.render();
+            }
+            
+            if (e.target.id === 'noteForm') {
+                const form = new FormData(e.target);
+                app.notes.push({
+                    id: Date.now(),
+                    title: form.get('title'),
+                    content: form.get('content'),
+                    noteClass: form.get('noteClass') || '',
+                    category: form.get('category') || '',
+                    date: new Date()
+                });
+                app.saveData();
+                app.render();
+            }
+            
+            if (e.target.id === 'studyForm') {
+                const form = new FormData(e.target);
+                app.studySessions.push({
+                    id: Date.now(),
+                    subject: form.get('subject'),
+                    minutes: parseInt(form.get('minutes')),
+                    date: new Date()
+                });
+                app.saveData();
+                app.render();
+                alert(`Great job studying! 🎓`);
+            }
+            
+            if (e.target.id === 'deckForm') {
+                const form = new FormData(e.target);
+                app.flashcards.push({
+                    id: Date.now(),
+                    name: form.get('name'),
+                    fcClass: form.get('fcClass') || '',
+                    cards: []
+                });
+                app.saveData();
+                app.render();
+            }
+
+            if (e.target.id === 'calEventForm') {
+                const form = new FormData(e.target);
+                app.calendarEvents.push({
+                    id: Date.now(),
+                    title: form.get('title'),
+                    date: form.get('date'),
+                    time: form.get('time') || '',
+                    note: form.get('note') || ''
+                });
+                app.saveData();
+                app.render();
+            }
+            
+            if (e.target.id === 'vocabForm') {
+                const form = new FormData(e.target);
+                app.vocab.push({
+                    id: Date.now(),
+                    word: form.get('word'),
+                    definition: form.get('definition'),
+                    example: form.get('example') || '',
+                    vocabClass: form.get('vocabClass') || ''
+                });
+                app.saveData();
+                app.render();
+            }
+        });
+
+        // Start the app
+        app.init();
+    </script>
+</body>
+</html>
